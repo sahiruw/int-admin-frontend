@@ -1,70 +1,111 @@
-import * as Icons from "../icons";
+import {
+  PlusCircle,
+  Eye,
+  Home,
+  Users,
+  Leaf,
+  Truck,
+  Package,
+  FileText,
+  Receipt,
+  Calendar,
+  Clock,
+  List,
+  File
+} from "lucide-react";
 
 export const NAV_DATA = [
   {
-    label: "MAIN MENU",
+    label: "KOI MANAGEMENT",
     items: [
-
-      {
-        title: "Breeder & Variety",
-        url: "/breeders",
-        icon: Icons.Calendar,
-        items: [],
-      },
       {
         title: "Add Koi",
-        url: "/breeders",
-        icon: Icons.Calendar,
+        url: "/koi/add",
+        icon: PlusCircle,
         items: [],
       },
       {
-        title: "Shipped Koi",
-        url: "/breeders",
-        icon: Icons.Calendar,
+        title: "View Koi",
+        url: "/koi/view",
+        icon: Eye,
         items: [],
       },
       {
-        title: "Breeder & Variety",
-        url: "/breeders",
-        icon: Icons.Calendar,
+        title: "Boarding Koi",
+        url: "/koi/boarding",
+        icon: Home,
         items: [],
       },
-    ]
+    ],
   },
   {
-    label: "REPORTS",
+    label: "BREEDING & VARIETIES",
     items: [
       {
-        title: "Charts",
-        icon: Icons.PieChart,
-        items: [
-          {
-            title: "Basic Chart",
-            url: "/charts/basic-chart",
-          },
-        ],
+        title: "Breeders",
+        url: "/breeders",
+        icon: Users,
+        items: [],
       },
       {
-        title: "UI Elements",
-        icon: Icons.FourCircle,
-        items: [
-          {
-            title: "Alerts",
-            url: "/ui-elements/alerts",
-          },
-          {
-            title: "Buttons",
-            url: "/ui-elements/buttons",
-          },
-        ],
+        title: "Varieties",
+        url: "/varieties",
+        icon: Leaf,
+        items: [],
+      },
+    ],
+  },
+  {
+    label: "SHIPPING & LOGISTICS",
+    items: [
+      {
+        title: "Add Shipping Info",
+        url: "/shipping/add",
+        icon: Truck,
+        items: [],
       },
       {
-        title: "Authentication",
-        icon: Icons.Authentication,
+        title: "Box Sizes",
+        url: "/shipping/box-sizes",
+        icon: Package,
+        items: [],
+      },
+    ],
+  },
+  {
+    label: "REPORTS & ANALYTICS",
+    items: [
+      {
+        title: "PO by Breeder",
+        url: "/reports/po-breeder",
+        icon: FileText,
+        items: [],
+      },
+      {
+        title: "Invoice by Customer",
+        url: "/reports/invoice-customer",
+        icon: Receipt,
+        items: [],
+      },
+      {
+        title: "Summary by Date & Breeder",
+        url: "/reports/summary-date-breeder",
+        icon: Calendar,
+        items: [],
+      },
+      {
+        title: "By Date",
+        icon: Clock,
         items: [
           {
-            title: "Sign In",
-            url: "/auth/sign-in",
+            title: "Shipping List by Date",
+            url: "/reports/shipping-list-date",
+            icon: List,
+          },
+          {
+            title: "INV & PL by Date",
+            url: "/reports/inv-pl-date",
+            icon: File,
           },
         ],
       },
