@@ -10,6 +10,6 @@ export function Logo() {
 
     </div>
 
-      <span className="text-sm">Admin Dashboard</span></>
+      </>
   );
 }

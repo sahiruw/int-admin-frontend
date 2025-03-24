@@ -93,22 +93,6 @@ export const NAV_DATA = [
         icon: Calendar,
         items: [],
       },
-      {
-        title: "By Date",
-        icon: Clock,
-        items: [
-          {
-            title: "Shipping List by Date",
-            url: "/reports/shipping-list-date",
-            icon: List,
-          },
-          {
-            title: "INV & PL by Date",
-            url: "/reports/inv-pl-date",
-            icon: File,
-          },
-        ],
-      },
     ],
   },
 ];
