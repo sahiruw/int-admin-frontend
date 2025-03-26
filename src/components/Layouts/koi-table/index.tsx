@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import dayjs from "dayjs";
+import { useState } from "react";
 
 interface KoiInfo {
   koi_id: string;
@@ -39,6 +40,21 @@ interface KoiInfo {
 }
 
 export function KoiInfoTable({ data }: { data: KoiInfo[] }) {
+  const pageSizeOptions = [5, 10, 20, 50, 100];
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(pageSizeOptions[0]);
+
+  const totalPages = Math.ceil(data.length / itemsPerPage);
+  const startEntry = (currentPage - 1) * itemsPerPage;
+  const endEntry = startEntry + itemsPerPage;
+  const paginatedData = data.slice(startEntry, endEntry);
+
+  const start = data.length > 0 ? startEntry + 1 : 0;
+  const end = Math.min(endEntry, data.length);
+
+  
+
   return (
     <div>
       <Table>
@@ -62,7 +78,7 @@ export function KoiInfoTable({ data }: { data: KoiInfo[] }) {
         </TableHeader>
 
         <TableBody>
-          {data.map((row, index) => (
+          {paginatedData.map((row, index) => (
 
               <TableRow key={index} className="border-[#eee] dark:border-dark-3">
                 <TableCell>
@@ -127,7 +143,52 @@ export function KoiInfoTable({ data }: { data: KoiInfo[] }) {
 
           ))}
         </TableBody>
+        
       </Table>
+
+      <div className="flex items-center justify-between mt-4 px-4">
+        <div className="text-sm text-gray-600 dark:text-gray-400">
+          Showing {start} to {end} of {data.length} entries
+        </div>
+        
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600 dark:text-gray-400">Rows per page:</span>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => {
+                setItemsPerPage(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              className="border rounded-md px-2 py-1 dark:bg-dark-2 dark:border-dark-3"
+            >
+              {pageSizeOptions.map((size) => (
+                <option key={size} value={size}>{size}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1 border rounded-md hover:bg-gray-50 dark:hover:bg-dark-3 disabled:opacity-50 disabled:cursor-not-allowed dark:border-dark-3"
+            >
+              Previous
+            </button>
+            <span className="text-sm text-gray-600 dark:text-gray-400">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1 border rounded-md hover:bg-gray-50 dark:hover:bg-dark-3 disabled:opacity-50 disabled:cursor-not-allowed dark:border-dark-3"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
