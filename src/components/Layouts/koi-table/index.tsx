@@ -63,7 +63,7 @@ export function KoiInfoTable({ data }: { data: KoiInfo[] }) {
 
         <TableBody>
           {data.map((row, index) => (
-            <>
+
               <TableRow key={index} className="border-[#eee] dark:border-dark-3">
                 <TableCell>
                   <div className="flex flex-col gap-2">
@@ -124,14 +124,7 @@ export function KoiInfoTable({ data }: { data: KoiInfo[] }) {
                   </p>
                 </TableCell>
               </TableRow>
-              <TableRow className="border-none dark:border-dark-3" >
-                <TableCell colSpan={7} className="text-right">
-                  <button className="text-red-500 dark:text-red-400">
-                    <TrashIcon className="w-5 h-5" />
-                  </button>
-                </TableCell>
-              </TableRow>
-            </>
+
           ))}
         </TableBody>
       </Table>
