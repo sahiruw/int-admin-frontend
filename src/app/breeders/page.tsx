@@ -1,0 +1,114 @@
+'use client'
+import React, { useEffect, useState } from 'react'
+import { DataTable } from '@/components/Layouts/editable-table'
+import { toast } from 'react-hot-toast'
+
+export default function Page() {
+    const [breeders, setBreeders] = useState([
+        { "name": "", "id": 0 },
+    ])
+
+    useEffect(() => {
+        // Fetch breeders
+        fetch('/api/breeders', { next: { revalidate: 300 } })
+            .then((response) => response.json())
+            .then((data) => {
+                setBreeders(data);
+                toast.success('Breeders fetched successfully');
+            })
+            .catch((error) => {
+                console.error('Error fetching data:', error);
+                toast.error('Failed to fetch breeders');
+            });
+    }, [])
+
+    const handleEdit = (id, data) => {
+        // Update the breeder
+        fetch('/api/breeders', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ payload: data }),
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error('Failed to update breeder');
+                }
+                return response.json();
+            })
+            .then((result) => {
+                toast.success('Breeder updated successfully');
+                setBreeders((prevBreeders) =>
+                    prevBreeders.map((breeder) =>
+                        breeder.id === id ? { ...breeder, ...data } : breeder
+                    )
+                );
+            })
+            .catch((error) => {
+                console.error('Error updating breeder:', error);
+                toast.error('Failed to update breeder');
+            });
+    }
+
+    const handleDelete = (id) => {
+        // Delete the breeder
+        fetch('/api/breeders', {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ id }),
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error('Failed to delete breeder');
+                }
+                return response.json();
+            })
+            .then((result) => {
+                toast.success('Breeder deleted successfully');
+                setBreeders((prevBreeders) =>
+                    prevBreeders.filter((breeder) => breeder.id !== id)
+                );
+            })
+            .catch((error) => {
+                console.error('Error deleting breeder:', error);
+                toast.error('Failed to delete breeder');
+            });
+    }
+
+    const handleAdd = (data) => {
+        // Find the next available ID
+        const nextId = Math.max(...breeders.map((breeder) => breeder.id)) + 1;
+        data.id = nextId;
+
+        fetch('/api/breeders', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ payload: data }),
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error('Failed to add breeder');
+                }
+                return response.json();
+            })
+            .then((result) => {
+                toast.success('Breeder added successfully');
+                setBreeders((prevBreeders) => [...prevBreeders, { ...data, id: nextId }]);
+            })
+            .catch((error) => {
+                console.error('Error adding breeder:', error);
+                toast.error('Failed to add breeder');
+            });
+    }
+
+    return (
+        <div className="rounded-[10px] bg-white shadow-1 dark:bg-gray-dark dark:shadow-card p-8" style={{ height: '80vh', overflow: 'auto' }}>
+            <DataTable data={breeders} editData={setBreeders} onEdit={handleEdit} onDelete={handleDelete} onAdd={handleAdd} />
+        </div>
+    )
+}

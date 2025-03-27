@@ -1,20 +1,19 @@
-// components/Layouts/steps/upload-step.tsx
 'use client';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import Papa from 'papaparse';
 
-export function UploadStep({ onComplete }: { 
-  onComplete: (data: any[], headers: string[]) => void 
+export function UploadStep({ onComplete }: {
+  onComplete: (data: any[], headers: string[]) => void
 }) {
-  const handleFileUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleFile = (file: File) => {
     Papa.parse(file, {
       header: true,
       complete: (results) => {
         const headers = results.meta.fields || [];
         const filteredData = results.data.filter((row: any) =>
-        headers.every((header) => row[header] !== undefined && row[header] !== null && row[header] !== '')
+          headers.every((header) => row[header] !== undefined && row[header] !== null && row[header] !== '')
         );
         onComplete(filteredData, headers);
       },
@@ -22,27 +21,51 @@ export function UploadStep({ onComplete }: {
         console.error('CSV parsing error:', error);
       }
     });
-    }
-  }, [onComplete]);
+  };
+
+  const handleFileUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleFile(file);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) handleFile(file);
+  }, []);
 
   return (
-    <div className="border-2 border-dashed rounded-lg p-8 text-center min-h-36">
-      <input
-        type="file"
-        accept=".csv"
-        onChange={handleFileUpload}
-        className="hidden mt-8"
-        id="csv-upload"
-      />
-      <label
-        htmlFor="csv-upload"
-        className="cursor-pointer p-4 rounded-lg bg-gray-50 hover:bg-gray-100"
+    <div className="flex items-center justify-center">
+      <div
+        onDrop={handleDrop}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setIsDragging(true);
+        }}
+        onDragLeave={() => setIsDragging(false)}
+        className={`w-full p-8 border-2 border-dashed rounded-lg text-center transition
+          ${isDragging ? 'border-primary bg-gray-50' : 'border-gray-300'}`}
+
+          style={{ height: '60vh', overflow: 'auto' }}
       >
-        Click to upload CSV or drag and drop
-      </label>
-      <p className="mt-8 text-sm text-gray-500">
-        CSV should include headers matching your data columns
-      </p>
+        <input
+          type="file"
+          accept=".csv"
+          onChange={handleFileUpload}
+          className="hidden"
+          id="csv-upload"
+        />
+        <label
+          htmlFor="csv-upload"
+          className="cursor-pointer inline-block px-4 py-2 rounded-md bg-gray-100 hover:bg-gray-200 text-sm"
+        >
+          Click to upload CSV or drag and drop here
+        </label>
+        <p className="mt-4 text-xs text-gray-500">
+          The CSV must include headers that match your expected data columns.
+        </p>
+      </div>
     </div>
   );
 }

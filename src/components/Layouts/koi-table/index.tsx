@@ -32,7 +32,7 @@ export function KoiInfoTable({ data }: { data: KoiInfo[] }) {
   
 
   return (
-    <div>
+    <div  style={{ height: '70vh', overflow: 'auto' }}>
       <Table>
         <TableHeader>
           <TableRow className="border-none bg-[#F7F9FC] dark:bg-dark-2 [&>th]:py-4 [&>th]:text-base [&>th]:text-dark [&>th]:dark:text-white">

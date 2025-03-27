@@ -6,7 +6,7 @@ export function Table({
   ...props
 }: React.HTMLAttributes<HTMLTableElement>) {
   return (
-    <div className="relative w-full overflow-auto">
+    <div className="relative w-full">
       <table
         className={cn("w-full caption-bottom text-sm", className)}
         {...props}
@@ -19,7 +19,15 @@ export function TableHeader({
   className,
   ...props
 }: React.HTMLAttributes<HTMLTableSectionElement>) {
-  return <thead className={cn("[&_tr]:border-b", className)} {...props} />;
+  return (
+    <thead
+      className={cn(
+        "[&_tr]:border-b sticky top-0 bg-white dark:bg-neutral-900 z-10",
+        className,
+      )}
+      {...props}
+    />
+  );
 }
 
 export function TableBody({

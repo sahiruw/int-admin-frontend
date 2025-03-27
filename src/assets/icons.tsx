@@ -416,3 +416,59 @@ export function UploadIcon(props: IconProps) {
     </svg>
   );
 }
+
+export function EditIcon(props: IconProps) {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 18 18"
+      fill="currentColor"
+      {...props}
+    >
+      <path d="M12.146 2.146a1.5 1.5 0 0 1 2.121 0l1.586 1.586a1.5 1.5 0 0 1 0 2.121l-9.5 9.5a1 1 0 0 1-.707.293H3a1 1 0 0 1-1-1v-2.646a1 1 0 0 1 .293-.707l9.5-9.5ZM4 13.293V15h1.707l9.5-9.5-1.707-1.707-9.5 9.5Z" />
+    </svg>
+  );
+}
+
+export function SaveIcon(props: IconProps) {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 18 18"
+      fill="currentColor"
+      {...props}
+    >
+      <path d="M3 2a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V5.414a1 1 0 0 0-.293-.707l-2.414-2.414A1 1 0 0 0 13 2H3Zm1 2h8v3H4V4Zm0 5h10v6H4V9Z" />
+    </svg>
+  );
+}
+
+export function RedoIcon(props: IconProps) {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 18 18"
+      fill="currentColor"
+      {...props}
+    >
+      <path d="M13.5 4.5a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1h-4a1 1 0 1 1 0-2h2.586l-3.793-3.793a4 4 0 1 0 0 5.586 1 1 0 1 1 1.414-1.414 2 2 0 1 1 0-2.828L12.086 8H9.5a1 1 0 1 1 0-2h4Z" />
+    </svg>
+  );
+}
+
+export function ClearIcon(props: IconProps) {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 18 18"
+      fill="currentColor"
+      {...props}
+    >
+      <path d="M6.293 6.293a1 1 0 0 1 1.414 0L9 7.586l1.293-1.293a1 1 0 0 1 1.414 1.414L10.414 9l1.293 1.293a1 1 0 0 1-1.414 1.414L9 10.414l-1.293 1.293a1 1 0 0 1-1.414-1.414L7.586 9 6.293 7.707a1 1 0 0 1 0-1.414ZM3 2a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1H3Z" />
+    </svg>
+  );
+}
