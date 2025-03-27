@@ -68,6 +68,9 @@ export function KoiInfoTable({ data }: { data: KoiInfo[] }) {
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       {row.breeder} ({row.bre_id})
                     </p>
+                    <p className="text-xs text-gray-400 dark:text-gray-400">
+                     {dayjs(row.timestamp).format("MMM DD, YYYY h:mm A")}
+                    </p>
                   </div>
                 </TableCell>
 
@@ -88,7 +91,7 @@ export function KoiInfoTable({ data }: { data: KoiInfo[] }) {
                     {row.sold_to}
                   </p>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    📍 {row.ship_to}
+                    {row.ship_to && (`📍 ${row.ship_to}`)}
                   </p>
                 </TableCell>
 

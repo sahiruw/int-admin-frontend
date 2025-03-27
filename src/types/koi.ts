@@ -22,4 +22,5 @@ export interface KoiInfo {
   total_kg?: number;
   shipped_yn?: string;
   ship_date?: string;
+  timestamp: Date
 }

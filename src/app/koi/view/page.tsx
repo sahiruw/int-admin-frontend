@@ -11,7 +11,10 @@ export default function Page() {
     fetch('/api/koi', { next: { revalidate: 300 } })
       .then((response) => response.json())
       .then((data) => {
-        setData(data);
+        setData(data.map((item: KoiInfo) => ({
+          ...item,
+          timestamp: new Date(item.timestamp),
+        })));
         console.log(data);
       })
       .catch((error) => {

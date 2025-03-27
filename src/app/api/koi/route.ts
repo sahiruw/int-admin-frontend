@@ -19,6 +19,8 @@ export async function GET() {
   if (!error && !configError) {
     data.forEach((koi) => {
       let koiData: KoiInfo = {
+        timestamp: koi.timestamp,
+
         koi_id: koi.picture_id,
         variety: koi.variety.variety,
         sex: koi.sex,
