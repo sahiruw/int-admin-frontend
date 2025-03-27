@@ -1,8 +1,14 @@
 import React from 'react'
+import { BulkUploadWizard } from '@/components/Layouts/bulk-upload-wizard'
 
 const page = () => {
   return (
-    <div>page</div>
+    <div
+      className="rounded-[10px] bg-white shadow-1 dark:bg-gray-dark dark:shadow-card p-8"
+      style={{ maxHeight: '80vh', overflow: 'auto' }}
+    >
+      <BulkUploadWizard />
+    </div>
   )
 }
 

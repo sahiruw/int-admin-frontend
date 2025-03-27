@@ -30,7 +30,23 @@ export async function GET() {
   }
   
   export async function POST(req: Request) {
-    const data = await req.json();
+    const supabaseClient = await createClient();
+
+    const body = await req.text();
+    const { payload } = JSON.parse(body);
+    const { data, error } = await supabaseClient.from('koiinfo').insert(payload)
+
+    if (error) {
+      return new Response(JSON.stringify({
+        message: 'An error occurred while adding koi',
+        error: error.message,
+      }), {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    }
   
     return new Response(JSON.stringify({
       message: 'Koi added successfully',
@@ -42,4 +58,5 @@ export async function GET() {
       },
     });
   }
+  
   
