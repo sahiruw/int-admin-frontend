@@ -12,32 +12,8 @@ import {
 import { cn } from "@/lib/utils";
 import dayjs from "dayjs";
 import { useState } from "react";
+import { KoiInfo } from "@/types/koi";
 
-interface KoiInfo {
-  koi_id: string;
-  variety: string;
-  sex: string;
-  age: number;
-  size_cm: number;
-  breeder: string;
-  bre_id: string;
-  pcs: number;
-  jpy_cost: number;
-  jpy_total: number;
-  sold_to: string;
-  ship_to: string;
-  sales_jpy: number;
-  sales_usd: number;
-  comm_jpy: number;
-  comm_usd: number;
-  total_jpy: number;
-  total_usd: number;
-  num_of_box: number;
-  box_size: string;
-  total_kg: number;
-  shipped_yn: string;
-  ship_date: string;
-}
 
 export function KoiInfoTable({ data }: { data: KoiInfo[] }) {
   const pageSizeOptions = [5, 10, 20, 50, 100];
@@ -48,7 +24,7 @@ export function KoiInfoTable({ data }: { data: KoiInfo[] }) {
   const totalPages = Math.ceil(data.length / itemsPerPage);
   const startEntry = (currentPage - 1) * itemsPerPage;
   const endEntry = startEntry + itemsPerPage;
-  const paginatedData = data.slice(startEntry, endEntry);
+  const paginatedData = data.length ? data.slice(startEntry, endEntry) : [];
 
   const start = data.length > 0 ? startEntry + 1 : 0;
   const end = Math.min(endEntry, data.length);
@@ -116,9 +92,9 @@ export function KoiInfoTable({ data }: { data: KoiInfo[] }) {
                   </p>
                 </TableCell>
 
-                {SalesCell(row.sales_jpy, row.sales_usd)}
-                {SalesCell(row.comm_jpy, row.comm_usd)}
-                {SalesCell(row.total_jpy, row.total_usd)}
+                {SalesCell(row.sales_jpy ?? 0, row.sales_usd ?? 0)}
+                {SalesCell(row.comm_jpy ?? 0, row.comm_usd ?? 0)}
+                {SalesCell(row.total_jpy ?? 0, row.total_usd ?? 0)}
 
                 <TableCell>
                   <p className="text-sm text-gray-500 dark:text-gray-400">

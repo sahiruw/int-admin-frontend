@@ -26,12 +26,12 @@ export function UploadStep({ onComplete }: {
   }, [onComplete]);
 
   return (
-    <div className="border-2 border-dashed rounded-lg p-8 text-center">
+    <div className="border-2 border-dashed rounded-lg p-8 text-center min-h-36">
       <input
         type="file"
         accept=".csv"
         onChange={handleFileUpload}
-        className="hidden"
+        className="hidden mt-8"
         id="csv-upload"
       />
       <label
@@ -40,7 +40,7 @@ export function UploadStep({ onComplete }: {
       >
         Click to upload CSV or drag and drop
       </label>
-      <p className="mt-4 text-sm text-gray-500">
+      <p className="mt-8 text-sm text-gray-500">
         CSV should include headers matching your data columns
       </p>
     </div>
