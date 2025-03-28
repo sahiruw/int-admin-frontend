@@ -170,7 +170,7 @@ export function DataTable<T extends { id: string }>({
               return (
                 <TableRow key={row.id} className="border-[#eee] dark:border-dark-3">
                   {columns.map(({ key }) => (
-                    <TableCell key={key}>
+                    <TableCell key={key} className="p-4">
                       {isEditing && key.toLowerCase() !== "id" ? (
                         <input
                           value={(rowData as any)[key] ?? ""}
@@ -183,7 +183,7 @@ export function DataTable<T extends { id: string }>({
                     </TableCell>
                   ))}
 
-                  <TableCell className="min-w-[400px]">
+                  <TableCell className="min-w-[400px] p-4">
                     {isEditing ? (
                       <div className="flex gap-3">
                         <button

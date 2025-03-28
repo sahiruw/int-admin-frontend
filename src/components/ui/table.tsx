@@ -22,7 +22,7 @@ export function TableHeader({
   return (
     <thead
       className={cn(
-        "[&_tr]:border-b sticky top-0 bg-white dark:bg-neutral-900 z-10",
+        "[&_tr]:border-b sticky top-0 bg-white dark:bg-neutral-900",
         className,
       )}
       {...props}
@@ -91,7 +91,7 @@ export function TableCell({
   return (
     <td
       className={cn(
-        "p-4 align-middle [&:has([role=checkbox])]:pr-0",
+        "p-2 align-middle [&:has([role=checkbox])]:pr-0",
         className,
       )}
       {...props}

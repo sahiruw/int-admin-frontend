@@ -1,6 +1,6 @@
 "use client";
 
-import { TrashIcon } from "@/assets/icons";
+import { TrashIcon, EditIcon } from "@/assets/icons";
 import {
   Table,
   TableBody,
@@ -32,25 +32,22 @@ export function KoiInfoTable({ data }: { data: KoiInfo[] }) {
   
 
   return (
-    <div  style={{ height: '70vh', overflow: 'auto' }}>
+    <div>
+    <div  style={{ height: '55vh', overflow: 'auto' }}>
       <Table>
         <TableHeader>
-          <TableRow className="border-none bg-[#F7F9FC] dark:bg-dark-2 [&>th]:py-4 [&>th]:text-base [&>th]:text-dark [&>th]:dark:text-white">
+          <TableRow className="border-none bg-[#F7F9FC] dark:bg-dark-2 [&>th]:py-1 [&>th]:text-base [&>th]:text-dark [&>th]:dark:text-white">
             <TableHead>Koi Info</TableHead>
+            <TableHead>Breeder</TableHead>
             <TableHead>Cost & Pricing</TableHead>
             <TableHead>Customer Info</TableHead>
-            <TableHead colSpan={3}>Sales & Revenue</TableHead>
-            <TableHead>Shipping Info</TableHead>
-          </TableRow>
-          <TableRow className="border-none bg-[#F7F9FC] dark:bg-dark-2 [&>th]:py-2 [&>th]:text-sm [&>th]:text-gray-600 [&>th]:dark:text-gray-400">
-            <TableHead></TableHead>
-            <TableHead></TableHead>
-            <TableHead></TableHead>
             <TableHead>Sales</TableHead>
             <TableHead>Commission</TableHead>
             <TableHead>Net Revenue</TableHead>
-            <TableHead></TableHead>
+            <TableHead>Shipping Info</TableHead>
+            <TableHead>Actions</TableHead>
           </TableRow>
+
         </TableHeader>
 
         <TableBody>
@@ -58,20 +55,24 @@ export function KoiInfoTable({ data }: { data: KoiInfo[] }) {
 
               <TableRow key={index} className="border-[#eee] dark:border-dark-3">
                 <TableCell>
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col">
                     <p className="font-medium text-dark dark:text-white">
                       {row.koi_id} - {row.variety}
                     </p>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       {row.sex} | {row.age} yrs | {row.size_cm} cm
                     </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {row.breeder} ({row.bre_id})
-                    </p>
+                    
                     <p className="text-xs text-gray-400 dark:text-gray-400">
                      {dayjs(row.timestamp).format("MMM DD, YYYY h:mm A")}
                     </p>
                   </div>
+                </TableCell>
+
+                <TableCell>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {row.breeder} ({row.bre_id})
+                    </p>
                 </TableCell>
 
                 <TableCell>
@@ -95,9 +96,9 @@ export function KoiInfoTable({ data }: { data: KoiInfo[] }) {
                   </p>
                 </TableCell>
 
-                {SalesCell(row.sales_jpy ?? 0, row.sales_usd ?? 0)}
-                {SalesCell(row.comm_jpy ?? 0, row.comm_usd ?? 0)}
-                {SalesCell(row.total_jpy ?? 0, row.total_usd ?? 0)}
+                {SalesCell(row.sales_jpy, row.sales_usd)}
+                {SalesCell(row.comm_jpy, row.comm_usd)}
+                {SalesCell(row.total_jpy, row.total_usd)}
 
                 <TableCell>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -118,13 +119,30 @@ export function KoiInfoTable({ data }: { data: KoiInfo[] }) {
                     📆 {dayjs(row.ship_date).format("MMM DD, YYYY")}
                   </p>
                 </TableCell>
+
+                <TableCell>
+                  <div className="flex gap-2">
+                    <button
+                      className="hover:text-primary-600"
+                      title="Edit"
+                    >
+                      <EditIcon className="w-5 h-5" />
+                    </button>
+                    <button
+                      className=""
+                      title="Delete"
+                    >
+                      <TrashIcon className="w-5 h-5" />
+                    </button>
+                  </div>
+                </TableCell>
               </TableRow>
 
           ))}
         </TableBody>
         
       </Table>
-
+      </div>
       <div className="flex items-center justify-between mt-4 px-4">
         <div className="text-sm text-gray-600 dark:text-gray-400">
           Showing {start} to {end} of {data.length} entries
@@ -173,13 +191,21 @@ export function KoiInfoTable({ data }: { data: KoiInfo[] }) {
 }
 
 
-const SalesCell = (jpy: number, usd: number) => {
+const SalesCell = (jpy?: number, usd?: number) => {
+  if (!jpy || !usd) {
+    return (
+      <TableCell>
+        <p className="text-gray-500 dark:text-gray-400 text-sm">N/A</p>
+      </TableCell>
+    );
+  }
+
   return (
     <TableCell>
       <p className="text-green-600 dark:text-green-400 text-sm">
         <span className="flex items-center gap-1">
           <span
-            className="w-3 h-3 rounded-full bg-[#BC002D] "
+            className="w-3 h-3 rounded-full bg-[#BC002D]"
             aria-label="Red Ball"
           ></span>
           ¥{jpy.toLocaleString()}
@@ -195,5 +221,5 @@ const SalesCell = (jpy: number, usd: number) => {
         </span>
       </p>
     </TableCell>
-  )
-}
+  );
+};
