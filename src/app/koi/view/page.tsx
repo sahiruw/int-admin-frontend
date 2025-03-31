@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { KoiInfoTable } from '@/components/Layouts/koi-table'
 import { KoiInfo } from '@/types/koi';
 import { Button } from '@/components/ui-elements/button';
-import {FilteredMultiSelectTextboxDropdown} from "@/components/FormElements/filteredMultiselect";
+import { FilteredMultiSelectTextboxDropdown } from "@/components/FormElements/filteredMultiselect";
 
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -43,9 +43,9 @@ export default function Page() {
 
     setFilteredData(filteredData);
   }
-  , [filters, data]);
+    , [filters, data]);
 
- 
+
   const resetFilters = () => {
     setFilteredData(data);
     setIsReset(true);
@@ -55,8 +55,8 @@ export default function Page() {
   };
 
   return (
-    <div className="rounded-[10px] bg-white shadow-1 dark:bg-gray-dark dark:shadow-card px-8 py-4" style={{ height: '80vh', overflow: 'auto' }}>
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
+    <div className=" bg-white shadow-1 dark:bg-gray-dark dark:shadow-card px-8 py-4" style={{ height: '84vh', overflow: 'auto' }}>
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-4">
 
         <FilteredMultiSelectTextboxDropdown
           label="Variety"
@@ -68,7 +68,7 @@ export default function Page() {
           reset={isReset}
         />
 
-<FilteredMultiSelectTextboxDropdown
+        <FilteredMultiSelectTextboxDropdown
           label="Breeder"
           items={formatDataForDropdown(data, 'breeder')}
           placeholder='Select Breeder'
@@ -77,11 +77,10 @@ export default function Page() {
           }}
           reset={isReset}
         />
-        
-       
+
+
         <div className="flex gap-2">
-          {/* <Button onClick={applyFilters} label='Apply Filters'>Apply Filters</Button> */}
-          <Button variant="outline" onClick={resetFilters} label='Reset'
+          <Button variant="outlinePrimary" onClick={resetFilters} label='Reset'
           >Reset</Button>
         </div>
       </div>

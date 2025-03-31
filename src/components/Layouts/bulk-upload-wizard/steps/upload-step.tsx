@@ -12,9 +12,10 @@ export function UploadStep({ onComplete }: {
       header: true,
       complete: (results) => {
         const headers = results.meta.fields || [];
-        const filteredData = results.data.filter((row: any) =>
-          headers.every((header) => row[header] !== undefined && row[header] !== null && row[header] !== '')
-        );
+        // const filteredData = results.data.filter((row: any) =>
+        //   headers.every((header) => row[header] !== undefined && row[header] !== null && row[header] !== '')
+        // );
+        const filteredData = results.data.filter((row: any) => "Picture ID" in row && row["Picture ID"] !== null && row["Picture ID"] !== '');
         onComplete(filteredData, headers);
       },
       error: (error) => {

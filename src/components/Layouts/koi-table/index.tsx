@@ -19,7 +19,7 @@ export function KoiInfoTable({ data }: { data: KoiInfo[] }) {
   const pageSizeOptions = [5, 10, 20, 50, 100];
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(pageSizeOptions[0]);
+  const [itemsPerPage, setItemsPerPage] = useState(pageSizeOptions[Math.ceil(pageSizeOptions.length / 2)]);
 
   const totalPages = Math.ceil(data.length / itemsPerPage);
   const startEntry = (currentPage - 1) * itemsPerPage;
@@ -33,7 +33,7 @@ export function KoiInfoTable({ data }: { data: KoiInfo[] }) {
 
   return (
     <div>
-    <div  style={{ height: '55vh', overflow: 'auto' }}>
+    <div  style={{ height: '61vh', overflow: 'auto' }}>
       <Table>
         <TableHeader>
           <TableRow className="border-none bg-[#F7F9FC] dark:bg-dark-2 [&>th]:py-1 [&>th]:text-base [&>th]:text-dark [&>th]:dark:text-white">
@@ -80,10 +80,10 @@ export function KoiInfoTable({ data }: { data: KoiInfo[] }) {
                     {row.pcs} pcs
                   </p>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Unit Cost: {row.jpy_cost.toLocaleString()} JPY
+                    Unit Cost: {row.jpy_cost?.toLocaleString()} JPY
                   </p>
                   <p className="text-green-600 dark:text-green-400 font-medium">
-                    Total Cost: {row.jpy_total.toLocaleString()} JPY
+                    Total Cost: {row.jpy_total?.toLocaleString()} JPY
                   </p>
                 </TableCell>
 

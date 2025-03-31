@@ -15,13 +15,20 @@ import { FormPopup } from "../FormPopup";
 import { ConfirmationDialog } from "../ConfirmationDialog";
 import { ConfirmationDialogProps } from "@/types/ui";
 
+type PreHeader = {
+  header: string;
+  colspan: number;
+};
+
 type DataTableProps<T> = {
   data: T[];
-  editData: (data: T[]) => void;
+  editData: (data: T[]) => void; // This function is used to update the data in the parent component
   onEdit: (id: string, data: T) => void;
   onDelete: (id: string) => void;
   onAdd: (data: T) => void;
   excludeKeys?: string[];
+  isEditable?: boolean;
+  preHeaders?: PreHeader[];
 };
 
 export function DataTable<T extends { id: string }>({
@@ -31,6 +38,8 @@ export function DataTable<T extends { id: string }>({
   onDelete,
   onAdd,
   excludeKeys = [],
+  isEditable = true,
+  preHeaders = [],
 }: DataTableProps<T>) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editableData, setEditableData] = useState<Partial<T>>({});
@@ -41,11 +50,11 @@ export function DataTable<T extends { id: string }>({
 
   const columns = data.length > 0
     ? Object.keys(data[0])
-        .filter(key => !excludeKeys.includes(key))
-        .map(key => ({
-          key,
-          header: key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-        }))
+      .filter(key => !excludeKeys.includes(key))
+      .map(key => ({
+        key,
+        header: key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+      }))
     : [];
 
   const handleSort = (columnKey: string) => {
@@ -145,20 +154,27 @@ export function DataTable<T extends { id: string }>({
         />
       )}
       <div style={{ height: "60vh", overflow: "auto" }}>
-        <Table>
+      <Table className="w-full table-fixed">
+
           <TableHeader>
+            <TableRow className=" border-none bg-[#F7F9FC] dark:bg-dark-2 [&>th]:py-4 [&>th]:text-base [&>th]:text-dark [&>th]:dark:text-white">
+              {preHeaders.map(({ header, colspan }) => (
+                <TableHead key={header} colSpan={colspan} className="text-center w-auto">{header}</TableHead>
+              ))}
+            </TableRow>
+
             <TableRow className="border-none bg-[#F7F9FC] dark:bg-dark-2 [&>th]:py-4 [&>th]:text-base [&>th]:text-dark [&>th]:dark:text-white">
               {columns.map(({ key, header }) => (
                 <TableHead
                   key={key}
                   onClick={() => handleSort(key)}
-                  className="cursor-pointer min-w-20"
+                  className="cursor-pointer w-auto"
                 >
                   {header}{" "}
                   {sortColumn === key && (sortDirection === "asc" ? "↑" : "↓")}
                 </TableHead>
               ))}
-              <TableHead>Actions</TableHead>
+              {isEditable && <TableHead>Actions</TableHead>}
             </TableRow>
           </TableHeader>
 
@@ -170,7 +186,7 @@ export function DataTable<T extends { id: string }>({
               return (
                 <TableRow key={row.id} className="border-[#eee] dark:border-dark-3">
                   {columns.map(({ key }) => (
-                    <TableCell key={key} className="p-4">
+                    <TableCell key={key} className="p-4 w-auto">
                       {isEditing && key.toLowerCase() !== "id" ? (
                         <input
                           value={(rowData as any)[key] ?? ""}
@@ -183,51 +199,53 @@ export function DataTable<T extends { id: string }>({
                     </TableCell>
                   ))}
 
-                  <TableCell className="min-w-[400px] p-4">
-                    {isEditing ? (
-                      <div className="flex gap-3">
-                        <button
-                          onClick={handleSave}
-                          className="text-green-600 hover:text-green-800"
-                          title="Save"
-                        >
-                          <SaveIcon className="w-5 h-5" />
-                        </button>
+                  {isEditable && (
+                    <TableCell className="p-4 w-auto">
+                      {isEditing ? (
+                        <div className="flex gap-3">
+                          <button
+                            onClick={handleSave}
+                            className="text-green-600 hover:text-green-800"
+                            title="Save"
+                          >
+                            <SaveIcon className="w-5 h-5" />
+                          </button>
 
-                        <button
-                          onClick={() => setEditableData({})}
-                          className="text-red-600 hover:text-red-800"
-                          title="Clear"
-                        >
-                          <ClearIcon className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={handleCancel}
-                          className="text-yellow-600 hover:text-yellow-800"
-                          title="Cancel"
-                        >
-                          <RedoIcon className="w-5 h-5" />
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleEditClick(row)}
-                          className="hover:text-primary"
-                          title="Edit"
-                        >
-                          <EditIcon className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(row.id)}
-                          className="hover:text-primary"
-                          title="Delete"
-                        >
-                          <TrashIcon className="w-5 h-5" />
-                        </button>
-                      </div>
-                    )}
-                  </TableCell>
+                          <button
+                            onClick={() => setEditableData({})}
+                            className="text-red-600 hover:text-red-800"
+                            title="Clear"
+                          >
+                            <ClearIcon className="w-5 h-5" />
+                          </button>
+                          <button
+                            onClick={handleCancel}
+                            className="text-yellow-600 hover:text-yellow-800"
+                            title="Cancel"
+                          >
+                            <RedoIcon className="w-5 h-5" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleEditClick(row)}
+                            className="hover:text-primary"
+                            title="Edit"
+                          >
+                            <EditIcon className="w-5 h-5" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(row.id)}
+                            className="hover:text-primary"
+                            title="Delete"
+                          >
+                            <TrashIcon className="w-5 h-5" />
+                          </button>
+                        </div>
+                      )}
+                    </TableCell>
+                  )}
                 </TableRow>
               );
             })}

@@ -76,6 +76,12 @@ export const NAV_DATA = [
     label: "REPORTS & ANALYTICS",
     items: [
       {
+        title: "Sales Report",
+        url: "/reports/sales",
+        icon: FileText,
+        items: [],
+      },
+      {
         title: "PO by Breeder",
         url: "/reports/po-breeder",
         icon: FileText,

@@ -11,6 +11,7 @@ type PropsType = {
   className?: string;
   placeholder?: string;
   onChange?: (value: string) => void;
+  shouldShowSearch?: boolean;
 };
 
 export function FilteredTextboxDropdown({
@@ -20,14 +21,15 @@ export function FilteredTextboxDropdown({
   prefixIcon,
   className,
   onChange,
+  shouldShowSearch = true,
 }: PropsType) {
   const id = useId();
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
-  
-  const filteredItems = items.filter((item) =>
+
+  const filteredItems = shouldShowSearch ? items.filter((item) =>
     item.label.toLowerCase().includes(search.toLowerCase())
-  );
+  ) : items;
 
   return (
     <div className={cn("space-y-3 min-w-60 relative", className)}>

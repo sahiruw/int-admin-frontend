@@ -83,14 +83,40 @@ export async function POST(req: Request) {
   const supabaseClient = await createClient();
 
   const body = await req.text();
-  const { payload } = JSON.parse(body);
+  let { payload } = JSON.parse(body);
+
+  const { data: config, error: configError } = await supabaseClient
+  .from("configuration")
+  .select("*");
+
+  if (config && config.length > 0) {
+    payload = payload.map((koi: any) => { koi.rate = config[0].ex_rate; return koi; });
+  }
+  else {
+    return new Response(
+      JSON.stringify({
+        message: "No configuration found",
+        error: "Please add configuration first",
+      }),
+      {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+      });
+  }
+
   const { data, error } = await supabaseClient.from("koiinfo").insert(payload);
 
-  if (error) {
+
+
+  if (error || configError) {
+    let errMsg = error ? error.message : configError?.message || "Unknown error";
     return new Response(
       JSON.stringify({
         message: "An error occurred while adding koi",
-        error: error.message,
+        error: errMsg,
       }),
       {
         status: 500,
