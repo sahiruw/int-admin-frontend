@@ -82,20 +82,14 @@ export const NAV_DATA = [
         items: [],
       },
       {
-        title: "PO by Breeder",
-        url: "/reports/po-breeder",
-        icon: FileText,
-        items: [],
-      },
-      {
         title: "Invoice by Customer",
         url: "/reports/invoice-customer",
         icon: Receipt,
         items: [],
       },
       {
-        title: "Summary by Date & Breeder",
-        url: "/reports/summary-date-breeder",
+        title: "Shipping List",
+        url: "/reports/shipping-list",
         icon: Calendar,
         items: [],
       },

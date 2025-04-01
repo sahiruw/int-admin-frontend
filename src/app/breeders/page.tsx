@@ -1,6 +1,6 @@
 'use client'
 import React, { useEffect, useState } from 'react'
-import { DataTable } from '@/components/Layouts/editable-table'
+import { DataTable } from '@/components/Layouts/tables/editable'
 import { toast } from 'react-hot-toast'
 
 export default function Page() {

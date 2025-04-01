@@ -4,79 +4,86 @@ import { KoiInfo } from "@/types/koi";
 export async function GET() {
   const supabaseClient = await createClient();
 
-  const { data, error } = await supabaseClient.from("koiinfo").select(`
-    *,
-    breeder:breeder_id (*),
-    variety:koi_id (*)
-  `);
+  let allData: any[] = [];
+  const limit = 1000;
+  let offset = 0;
 
-  const { data: config, error: configError } = await supabaseClient
-    .from("configuration")
-    .select("*");
+  while (true) {
+    const { data, error } = await supabaseClient
+      .from("koiinfo")
+      .select(
+        `
+      *,
+      breeder:breeder_id (*),
+      variety:koi_id (*)
+    `
+      )
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      return new Response(
+        JSON.stringify({
+          message: "An error occurred while fetching koi data",
+          error: error.message,
+        }),
+        {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    if (!data || data.length === 0) {
+      break; // No more data to fetch
+    }
+
+    allData.push(...data);
+    offset += limit;
+  }
 
   let combinedData: KoiInfo[] = [];
 
-  if (!error && !configError) {
-    data.forEach((koi) => {
-      let koiData: KoiInfo = {
-        timestamp: koi.timestamp,
+  allData.forEach((koi) => {
+    let koiData: KoiInfo = {
+      timestamp: koi.timestamp,
 
-        koi_id: koi.picture_id,
-        variety: koi.variety.variety,
-        sex: koi.sex,
-        age: koi.age,
-        size_cm: koi.size_cm,
-        breeder: koi.breeder.name,
-        bre_id: koi.breeder_id,
-        pcs: koi.pcs,
+      koi_id: koi.picture_id,
+      variety: koi.variety.variety,
+      sex: koi.sex,
+      age: koi.age,
+      size_cm: koi.size_cm,
+      breeder: koi.breeder.name,
+      bre_id: koi.breeder_id,
+      pcs: koi.pcs,
 
-        jpy_cost: koi.jpy_cost,
-        jpy_total: koi.pcs * koi.jpy_cost,
+      jpy_cost: koi.jpy_cost,
+      jpy_total: koi.pcs * koi.jpy_cost,
 
-        sold_to: undefined,
-        ship_to: undefined,
+      sold_to: undefined,
+      ship_to: undefined,
 
-        sales_jpy: undefined,
-        sales_usd: undefined,
-        comm_jpy: undefined,
-        comm_usd: undefined,
-        total_jpy: undefined,
-        total_usd: undefined,
+      sales_jpy: undefined,
+      sales_usd: undefined,
+      comm_jpy: undefined,
+      comm_usd: undefined,
+      total_jpy: undefined,
+      total_usd: undefined,
 
-        num_of_box: undefined,
-        box_size: undefined,
-        total_kg: undefined,
-        shipped_yn: undefined,
-        ship_date: undefined,
-      };
-      combinedData.push(koiData);
-    });
+      num_of_box: undefined,
+      box_size: undefined,
+      total_kg: undefined,
+      shipped_yn: undefined,
+      ship_date: undefined,
+    };
+    combinedData.push(koiData);
+  });
 
-    return new Response(JSON.stringify(combinedData), {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-  }
-
-  if (error || configError) {
-    let errMsg = error ? error.message : configError?.message || "Unknown error";
-    return new Response(
-      JSON.stringify({
-        message: "An error occurred while fetching koi",
-        error: errMsg,
-      }),
-      {
-        status: 500,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-  }
-  
-
+  return new Response(JSON.stringify(combinedData), {
+    status: 200,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
 }
 
 export async function POST(req: Request) {
@@ -86,13 +93,15 @@ export async function POST(req: Request) {
   let { payload } = JSON.parse(body);
 
   const { data: config, error: configError } = await supabaseClient
-  .from("configuration")
-  .select("*");
+    .from("configuration")
+    .select("*");
 
   if (config && config.length > 0) {
-    payload = payload.map((koi: any) => { koi.rate = config[0].ex_rate; return koi; });
-  }
-  else {
+    payload = payload.map((koi: any) => {
+      koi.rate = config[0].ex_rate;
+      return koi;
+    });
+  } else {
     return new Response(
       JSON.stringify({
         message: "No configuration found",
@@ -103,16 +112,16 @@ export async function POST(req: Request) {
         headers: {
           "Content-Type": "application/json",
         },
-
-      });
+      }
+    );
   }
 
   const { data, error } = await supabaseClient.from("koiinfo").insert(payload);
 
-
-
   if (error || configError) {
-    let errMsg = error ? error.message : configError?.message || "Unknown error";
+    let errMsg = error
+      ? error.message
+      : configError?.message || "Unknown error";
     return new Response(
       JSON.stringify({
         message: "An error occurred while adding koi",

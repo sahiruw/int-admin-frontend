@@ -22,10 +22,10 @@ type PreHeader = {
 
 type DataTableProps<T> = {
   data: T[];
-  editData: (data: T[]) => void; // This function is used to update the data in the parent component
-  onEdit: (id: string, data: T) => void;
-  onDelete: (id: string) => void;
-  onAdd: (data: T) => void;
+  editData?: (data: T[]) => void; // This function is used to update the data in the parent component
+  onEdit?: (id: string, data: T) => void;
+  onDelete?: (id: string) => void;
+  onAdd?: (data: T) => void;
   excludeKeys?: string[];
   isEditable?: boolean;
   preHeaders?: PreHeader[];
