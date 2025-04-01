@@ -10,14 +10,8 @@ export async function GET() {
 
   while (true) {
     const { data, error } = await supabaseClient
-      .from("koiinfo")
-      .select(
-        `
-      *,
-      breeder:breeder_id (*),
-      variety:koi_id (*)
-    `
-      )
+      .from("koi_details_view")
+      .select("*")
       .range(offset, offset + limit - 1);
 
     if (error) {
@@ -41,44 +35,9 @@ export async function GET() {
     offset += limit;
   }
 
-  let combinedData: KoiInfo[] = [];
 
-  allData.forEach((koi) => {
-    let koiData: KoiInfo = {
-      timestamp: koi.timestamp,
 
-      koi_id: koi.picture_id,
-      variety: koi.variety.variety,
-      sex: koi.sex,
-      age: koi.age,
-      size_cm: koi.size_cm,
-      breeder: koi.breeder.name,
-      bre_id: koi.breeder_id,
-      pcs: koi.pcs,
-
-      jpy_cost: koi.jpy_cost,
-      jpy_total: koi.pcs * koi.jpy_cost,
-
-      sold_to: undefined,
-      ship_to: undefined,
-
-      sales_jpy: undefined,
-      sales_usd: undefined,
-      comm_jpy: undefined,
-      comm_usd: undefined,
-      total_jpy: undefined,
-      total_usd: undefined,
-
-      num_of_box: undefined,
-      box_size: undefined,
-      total_kg: undefined,
-      shipped_yn: undefined,
-      ship_date: undefined,
-    };
-    combinedData.push(koiData);
-  });
-
-  return new Response(JSON.stringify(combinedData), {
+  return new Response(JSON.stringify(allData), {
     status: 200,
     headers: {
       "Content-Type": "application/json",

@@ -3,6 +3,8 @@ import React, { useEffect, useState } from 'react';
 import DatePickerOne from '@/components/FormElements/DatePicker/DatePickerOne';
 import { FilteredTextboxDropdown } from "@/components/FormElements/filteredselect";
 import { DataTable } from '@/components/Layouts/tables/uneditable';
+import { KoiSaleRecord } from '@/types/koi';
+
 
 const Page = () => {
   const [startDate, setStartDate] = useState<string>('');
@@ -41,7 +43,7 @@ const Page = () => {
   };
 
   const fetchSales = async (start: string, end: string) => {
-    const query = `/api/sales?start=${start}&end=${end}`;
+    const query = `/api/koi/sales?start=${start}&end=${end}`;
     const res = await fetch(query);
     const data = await res.json();
     return data;
@@ -76,7 +78,7 @@ const Page = () => {
   ]
 
   return (
-    <div className="rounded-[10px] bg-white shadow-1 dark:bg-gray-dark dark:shadow-card" style={{ height: '80vh', overflow: 'auto' }}>
+    <div className="rounded-[10px] bg-white shadow-1 dark:bg-gray-dark dark:shadow-card px-2" style={{ height: '80vh', overflow: 'auto' }}>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 sticky top-0 bg-white dark:bg-gray-dark z-10 p-6">
         <div>
           <FilteredTextboxDropdown
@@ -120,7 +122,7 @@ const Page = () => {
         </div>
       </div>
 
-      <div className='overflow-y-scroll'>
+      {/* <div className='overflow-y-scroll'> */}
 
         <DataTable data={dataBYCustomer} columns={[
           { key: 'customer_name', header: 'Customer' },
@@ -132,10 +134,11 @@ const Page = () => {
           { key: 'usd_total_sale', header: 'Sales' },
           { key: 'usd_total_cost', header: 'Cost' },
           { key: 'usd_profit_total', header: 'Profit' },
-        ]} showTotals={true} preHeaders={precols} 
-        label='Sales by Customer'
+        ]} showTotals={true} preHeaders={precols}
+          label='Sales by Customer'
         />
-
+      {/* </div>
+      <div className='overflow-y-scroll'> */}
         <DataTable data={dataBYBreeder} columns={[
           { key: 'breeder_name', header: 'Breeder' },
           { key: 'pcs', header: 'Pcs' },
@@ -147,9 +150,11 @@ const Page = () => {
           { key: 'usd_total_cost', header: 'Cost' },
           { key: 'usd_profit_total', header: 'Profit' },
         ]} showTotals={true} preHeaders={precols}
-        label='Sales by Breeder'
+          label='Sales by Breeder'
         />
 
+      {/* </div>
+      <div className='overflow-y-scroll'> */}
         <DataTable data={dataBYDivision} columns={[
           { key: 'location_name', header: 'Division' },
           { key: 'pcs', header: 'Pcs' },
@@ -160,12 +165,12 @@ const Page = () => {
           { key: 'usd_total_sale', header: 'Sales' },
           { key: 'usd_total_cost', header: 'Cost' },
           { key: 'usd_profit_total', header: 'Profit' },
-        ]} showTotals={true} preHeaders={precols} 
-        label='Sales by Division'
+        ]} showTotals={true} preHeaders={precols}
+          label='Sales by Division'
         />
 
 
-      </div>
+      {/* </div> */}
 
 
     </div>
@@ -175,26 +180,7 @@ const Page = () => {
 export default Page;
 
 
-type KoiData = {
-  picture_id: string;
-  pcs: number;
-  jpy_cost: number;
-  rate: number;
-  breeder_name: string;
-  variety_name: string;
-  customer_name: string;
-  date: string;
-  location_name: string;
-  sale_price_jpy: number | null;
-  sale_price_usd: number | null;
-  comm: number;
-  jpy_total_cost: number;
-  jpy_total_sale: number;
-  jpy_profit_total: number;
-  usd_total_sale: number;
-  usd_total_cost: number;
-  usd_profit_total: number;
-};
+
 
 type SummaryResult = {
   [key: string]: string | number | string[];
@@ -209,7 +195,7 @@ type SummaryResult = {
   picture_ids: string[];
 };
 
-function groupAndSum(data: KoiData[], key: keyof KoiData): SummaryResult[] {
+function groupAndSum(data: KoiSaleRecord[], key: keyof KoiSaleRecord): SummaryResult[] {
   const result: Record<string, SummaryResult> = {};
 
   data.forEach(item => {

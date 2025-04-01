@@ -13,11 +13,15 @@ import { useSidebarContext } from "./sidebar-context";
 export function Sidebar() {
   const pathname = usePathname();
   const { setIsOpen, isOpen, isMobile, toggleSidebar } = useSidebarContext();
-  const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const [expandedSections, setExpandedSections] = useState<string[]>(
+    NAV_DATA.map((section) => section.label)
+  );
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const toggleExpanded = (title: string) => {
-    setExpandedItems((prev) => (prev.includes(title) ? [] : [title]));
+  const toggleSection = (label: string) => {
+    setExpandedSections((prev) =>
+      prev.includes(label) ? prev.filter((l) => l !== label) : [...prev, label]
+    );
   };
 
   useEffect(() => {
@@ -25,8 +29,8 @@ export function Sidebar() {
       return section.items.some((item) => {
         return item.items.some((subItem) => {
           if (subItem.url === pathname) {
-            if (!expandedItems.includes(item.title)) {
-              toggleExpanded(item.title);
+            if (!expandedSections.includes(section.label)) {
+              toggleSection(section.label);
             }
             return true;
           }
@@ -55,19 +59,22 @@ export function Sidebar() {
         aria-hidden={!isOpen}
         inert={!isOpen}
       >
-        <div className={
-          cn("flex h-full flex-col py-10 pr-[7px]",
-          isCollapsed ? "pl-[10px]" : "pl-[25px]"
-
-        )}>
+        <div
+          className={cn(
+            "flex h-full flex-col py-10 pr-[7px]",
+            isCollapsed ? "pl-[10px]" : "pl-[25px]"
+          )}
+        >
           <div className="relative pr-4.5 flex items-center justify-between">
-            {!isCollapsed && (<Link
-              href={"/"}
-              onClick={() => isMobile && toggleSidebar()}
-              className="px-0 py-2.5 min-[850px]:py-0"
-            >
-              <Logo />
-            </Link>)}
+            {!isCollapsed && (
+              <Link
+                href={"/"}
+                onClick={() => isMobile && toggleSidebar()}
+                className="px-0 py-2.5 min-[850px]:py-0"
+              >
+                <Logo />
+              </Link>
+            )}
 
             <button
               onClick={() => setIsCollapsed((prev) => !prev)}
@@ -85,27 +92,36 @@ export function Sidebar() {
 
           <div
             className={cn(
-              "custom-scrollbar mt-6 flex-1 overflow-y-auto pr-3 min-[850px]:mt-10",
-              // isCollapsed && "hidden"
+              "custom-scrollbar mt-6 flex-1 overflow-y-auto pr-3 min-[850px]:mt-10"
             )}
           >
             {NAV_DATA.map((section) => (
               <div key={section.label} className="mb-6">
-                <h2
+                <button
+                  onClick={() => toggleSection(section.label)}
                   className={cn(
-                    "mb-5 text-sm font-medium text-dark-4 dark:text-dark-6",
+                    "mb-5 flex items-center justify-between text-sm font-medium text-dark-4 dark:text-dark-6 w-full",
                     isCollapsed && "hidden"
                   )}
                 >
-                  {section.label}
-                </h2>
+                  <span>{section.label}</span>
+                  <ChevronUp
+                    className={cn(
+                      "size-4 transition-transform",
+                      expandedSections.includes(section.label)
+                        ? "rotate-0"
+                        : "rotate-180"
+                    )}
+                    aria-hidden="true"
+                  />
+                </button>
 
-                <nav role="navigation" aria-label={section.label}>
-                  <ul className="space-y-2">
-                    {section.items.map((item) => (
-                      <li key={item.title}>
-                        {
-                          (() => {
+                {expandedSections.includes(section.label) && (
+                  <nav role="navigation" aria-label={section.label}>
+                    <ul className="space-y-2">
+                      {section.items.map((item) => (
+                        <li key={item.title}>
+                          {(() => {
                             const href =
                               "url" in item
                                 ? item.url + ""
@@ -113,7 +129,7 @@ export function Sidebar() {
                                   item.title.toLowerCase().split(" ").join("-");
 
                             return (
-                                <MenuItem
+                              <MenuItem
                                 className={cn(
                                   "flex items-center gap-3 px-6 py-3",
                                   isCollapsed && "justify-center"
@@ -122,21 +138,21 @@ export function Sidebar() {
                                 href={href}
                                 isActive={pathname === href}
                                 title={isCollapsed ? item.title : undefined} // Add tooltip when collapsed
-                                >
+                              >
                                 <item.icon
                                   className="size-6 shrink-0"
                                   aria-hidden="true"
                                 />
 
                                 {!isCollapsed && <span>{item.title}</span>}
-                                </MenuItem>
+                              </MenuItem>
                             );
-                          })()
-                        }
-                      </li>
-                    ))}
-                  </ul>
-                </nav>
+                          })()}
+                        </li>
+                      ))}
+                    </ul>
+                  </nav>
+                )}
               </div>
             ))}
           </div>

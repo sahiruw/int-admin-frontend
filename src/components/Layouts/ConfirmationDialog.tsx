@@ -18,7 +18,7 @@ export function ConfirmationDialog({
 
     return (
         <div
-            className="fixed inset-0 bg-black/50 dark:bg-white/10 flex items-center justify-center p-4 z-50"
+            className=" z-50 fixed inset-0 bg-black/50 dark:bg-white/10 flex items-center justify-center p-4"
             onClick={onCancel} // Close dialog when clicking the outer area
         >
             <div
@@ -42,7 +42,7 @@ export function ConfirmationDialog({
                     <Button
                         variant="ghost"
                         onClick={onCancel}
-                        className="text-dark dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-3"
+                        className="text-dark dark:text-gray-300  hover:opacity-80"
                         label={cancelText}
                     >
                         {cancelText}
@@ -52,8 +52,8 @@ export function ConfirmationDialog({
                         className={cn(
                             "text-white",
                             variant === "destructive"
-                                ? "bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
-                                : "bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800"
+                                ? "bg-red-600  dark:bg-red-700  hover:opacity-80"
+                                : "bg-blue-600  dark:bg-blue-700  hover:opacity-80"
                         )}
                         label={confirmText}
                     >

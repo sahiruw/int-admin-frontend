@@ -82,8 +82,8 @@ export const NAV_DATA = [
         items: [],
       },
       {
-        title: "Invoice by Customer",
-        url: "/reports/invoice-customer",
+        title: "INV & PL by Date",
+        url: "/reports/inv-pl-by-date",
         icon: Receipt,
         items: [],
       },
@@ -95,4 +95,22 @@ export const NAV_DATA = [
       },
     ],
   },
+  {
+    label : "MANAGEMENT",
+    items: [
+      {
+        title: "Users",
+        url: "/users",
+        icon: Users,
+        items: [],
+      },
+      {
+        title: "Configurations",
+        url: "/configurations",
+        icon: File,
+        items: [],
+      }
+
+    ],
+  }
 ];

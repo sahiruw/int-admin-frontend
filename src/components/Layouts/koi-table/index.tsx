@@ -29,50 +29,50 @@ export function KoiInfoTable({ data }: { data: KoiInfo[] }) {
   const start = data.length > 0 ? startEntry + 1 : 0;
   const end = Math.min(endEntry, data.length);
 
-  
+
 
   return (
     <div>
-    <div  style={{ height: '61vh', overflow: 'auto' }}>
-      <Table>
-        <TableHeader>
-          <TableRow className="border-none bg-[#F7F9FC] dark:bg-dark-2 [&>th]:py-1 [&>th]:text-base [&>th]:text-dark [&>th]:dark:text-white">
-            <TableHead>Koi Info</TableHead>
-            <TableHead>Breeder</TableHead>
-            <TableHead>Cost & Pricing</TableHead>
-            <TableHead>Customer Info</TableHead>
-            <TableHead>Sales</TableHead>
-            <TableHead>Commission</TableHead>
-            <TableHead>Net Revenue</TableHead>
-            <TableHead>Shipping Info</TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
+      <div style={{ height: '61vh', overflow: 'auto' }}>
+        <Table>
+          <TableHeader>
+            <TableRow className="border-none bg-[#F7F9FC] dark:bg-dark-2 [&>th]:py-1 [&>th]:text-base [&>th]:text-dark [&>th]:dark:text-white">
+              <TableHead>Koi Info</TableHead>
+              <TableHead>Breeder</TableHead>
+              <TableHead>Cost & Pricing</TableHead>
+              <TableHead>Customer Info</TableHead>
+              <TableHead>Sales</TableHead>
+              <TableHead>Commission</TableHead>
+              <TableHead>Net Revenue</TableHead>
+              <TableHead>Shipping Info</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
 
-        </TableHeader>
+          </TableHeader>
 
-        <TableBody>
-          {paginatedData.map((row, index) => (
+          <TableBody>
+            {paginatedData.map((row, index) => (
 
               <TableRow key={index} className="border-[#eee] dark:border-dark-3">
                 <TableCell>
                   <div className="flex flex-col">
                     <p className="font-medium text-dark dark:text-white">
-                      {row.koi_id} - {row.variety}
+                      {row.picture_id} - {row.variety_name} ({row.koi_id})
                     </p>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       {row.sex} | {row.age} yrs | {row.size_cm} cm
                     </p>
-                    
+
                     <p className="text-xs text-gray-400 dark:text-gray-400">
-                     {dayjs(row.timestamp).format("MMM DD, YYYY h:mm A")}
+                      {dayjs(row.timestamp).format("MMM DD, YYYY h:mm A")}
                     </p>
                   </div>
                 </TableCell>
 
                 <TableCell>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {row.breeder} ({row.bre_id})
-                    </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {row.breeder_name} ({row.breeder_id})
+                  </p>
                 </TableCell>
 
                 <TableCell>
@@ -80,43 +80,43 @@ export function KoiInfoTable({ data }: { data: KoiInfo[] }) {
                     {row.pcs} pcs
                   </p>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Unit Cost: {row.jpy_cost?.toLocaleString()} JPY
+                    Unit Cost: {row.jpy_cost ? row.jpy_cost.toLocaleString() + " JPY"  : "N/A"}
                   </p>
                   <p className="text-green-600 dark:text-green-400 font-medium">
-                    Total Cost: {row.jpy_total?.toLocaleString()} JPY
+                    Total Cost: {row.jpy_total ? row.jpy_total.toLocaleString() + " JPY"  : "N/A"}
                   </p>
                 </TableCell>
 
                 <TableCell>
                   <p className="font-medium text-dark dark:text-white">
-                    {row.sold_to}
+                    {row.customer_name}
                   </p>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {row.ship_to && (`📍 ${row.ship_to}`)}
+                    {row.location_name && (`📍 ${row.location_name}`)}
                   </p>
                 </TableCell>
 
-                {SalesCell(row.sales_jpy, row.sales_usd)}
+                {SalesCell(row.sale_price_jpy, row.sale_price_usd)}
                 {SalesCell(row.comm_jpy, row.comm_usd)}
-                {SalesCell(row.total_jpy, row.total_usd)}
+                {SalesCell(row.total_jpy_sales, row.total_usd_sales)}
 
                 <TableCell>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    📦 {row.num_of_box} box(es) | {row.box_size} | {row.total_kg}{" "}
+                    📦 {row.box_count} box(es) | {row.box_size} | {row.total_weight}{" "}
                     kg
                   </p>
                   <p
                     className={cn(
                       "text-sm font-medium",
-                      row.shipped_yn === "Yes"
+                      row.shipped
                         ? "text-green-600 dark:text-green-400"
                         : "text-red-500 dark:text-red-400"
                     )}
                   >
-                    🚚 {row.shipped_yn === "Yes" ? "Shipped" : "Not Shipped"}
+                    🚚 {row.shipped ? "Shipped" : "Not Shipped"}
                   </p>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    📆 {dayjs(row.ship_date).format("MMM DD, YYYY")}
+                    📆 {dayjs(row.date).format("MMM DD, YYYY")}
                   </p>
                 </TableCell>
 
@@ -138,16 +138,16 @@ export function KoiInfoTable({ data }: { data: KoiInfo[] }) {
                 </TableCell>
               </TableRow>
 
-          ))}
-        </TableBody>
-        
-      </Table>
+            ))}
+          </TableBody>
+
+        </Table>
       </div>
       <div className="flex items-center justify-between mt-4 px-4">
         <div className="text-sm text-gray-600 dark:text-gray-400">
           Showing {start} to {end} of {data.length} entries
         </div>
-        
+
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-600 dark:text-gray-400">Rows per page:</span>
@@ -192,7 +192,7 @@ export function KoiInfoTable({ data }: { data: KoiInfo[] }) {
 
 
 const SalesCell = (jpy?: number, usd?: number) => {
-  if (!jpy || !usd) {
+  if (!jpy && !usd) {
     return (
       <TableCell>
         <p className="text-gray-500 dark:text-gray-400 text-sm">N/A</p>
@@ -203,22 +203,22 @@ const SalesCell = (jpy?: number, usd?: number) => {
   return (
     <TableCell>
       <p className="text-green-600 dark:text-green-400 text-sm">
-        <span className="flex items-center gap-1">
+        {jpy && (<span className="flex items-center gap-1">
           <span
             className="w-3 h-3 rounded-full bg-[#BC002D]"
             aria-label="Red Ball"
           ></span>
-          ¥{jpy.toLocaleString()}
-        </span>
+          ¥{jpy?.toLocaleString()}
+        </span>)}
 
-        <span className="flex items-center gap-1">
+        {usd && (<span className="flex items-center gap-1">
           <img
             src="https://flagcdn.com/w40/us.png"
             alt="US Flag"
             className="w-3 h-3 rounded-full"
           />
           ${usd.toLocaleString()}
-        </span>
+        </span>)}
       </p>
     </TableCell>
   );
