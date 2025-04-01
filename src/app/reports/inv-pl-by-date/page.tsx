@@ -1,4 +1,5 @@
 'use client';
+import { useLoading } from '@/app/loading-context';
 import DatePickerOne from '@/components/FormElements/DatePicker/DatePickerOne';
 import { Picker } from '@/components/FormElements/Dropdown';
 import { ConfirmationDialog } from '@/components/Layouts/ConfirmationDialog';
@@ -10,6 +11,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 
 
 const Page = () => {
+    const { setLoading } = useLoading();
     const [data, setData] = useState<KoiSaleRecord[]>([]);
     const [selectedDate, setSelectedDate] = useState("");
     const [selectedRows, setSelectedRows] = useState<string[]>([]);
@@ -19,12 +21,16 @@ const Page = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
+                setLoading(true);
                 const res = await fetch("/api/koi");
                 const rawData: KoiSaleRecord[] = await res.json();
                 const filtered = rawData.reverse().filter((record) => record.date && !record.shipped);
                 setData(filtered);
             } catch (error) {
                 console.error("Failed to fetch koi sales data:", error);
+            }
+            finally {
+                setLoading(false);
             }
         };
 

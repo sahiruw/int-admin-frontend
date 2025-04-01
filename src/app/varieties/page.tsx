@@ -2,13 +2,16 @@
 import React, { useEffect, useState } from 'react'
 import { DataTable } from '@/components/Layouts/tables/editable'
 import { toast } from 'react-hot-toast'
+import { useLoading } from '../loading-context';
 
 export default function Page() {
+    const { setLoading } = useLoading();
     const [varieties, setVarieties] = useState([
         
     ])
 
     useEffect(() => {
+        setLoading(true);
         // Fetch varieties
         fetch('/api/varieties', { next: { revalidate: 300 } })
             .then((response) => response.json())
@@ -19,6 +22,9 @@ export default function Page() {
             .catch((error) => {
                 console.error('Error fetching data:', error);
                 toast.error('Failed to fetch varieties');
+            })
+            .finally(() => {
+                setLoading(false);
             });
     }, [])
 

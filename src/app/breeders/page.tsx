@@ -2,11 +2,14 @@
 import React, { useEffect, useState } from 'react'
 import { DataTable } from '@/components/Layouts/tables/editable'
 import { toast } from 'react-hot-toast'
+import { useLoading } from '../loading-context';
 
 export default function Page() {
+    const { setLoading } = useLoading();
     const [breeders, setBreeders] = useState([    ])
 
     useEffect(() => {
+        setLoading(true);
         // Fetch breeders
         fetch('/api/breeders', { next: { revalidate: 300 } })
             .then((response) => response.json())
@@ -17,8 +20,11 @@ export default function Page() {
             .catch((error) => {
                 console.error('Error fetching data:', error);
                 toast.error('Failed to fetch breeders');
+            })
+            .finally(() => {
+                setLoading(false);
             });
-    }, [])
+    }, []);
 
     const handleEdit = (id, data) => {
         // Update the breeder

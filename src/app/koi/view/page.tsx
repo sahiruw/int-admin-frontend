@@ -7,14 +7,17 @@ import { FilteredMultiSelectTextboxDropdown } from "@/components/FormElements/fi
 
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import { useLoading } from '@/app/loading-context';
 
 export default function Page() {
+  const { setLoading } = useLoading();
   const [data, setData] = useState<KoiInfo[]>([]);
   const [filteredData, setFilteredData] = useState<KoiInfo[]>([]);
   const [filters, setFilters] = useState<Record<string, string[]>>({}); // { variety: ['Kohaku', 'Sanke'] }
   const [isReset, setIsReset] = useState<boolean>(false);
 
   useEffect(() => {
+    setLoading(true);
     fetch('/api/koi', { next: { revalidate: 300 } })
       .then((response) => response.json())
       .then((data) => {
@@ -27,6 +30,9 @@ export default function Page() {
       })
       .catch((error) => {
         console.error('Error fetching data:', error);
+      })
+      .finally(() => {
+        setLoading(false);
       });
   }, []);
 
