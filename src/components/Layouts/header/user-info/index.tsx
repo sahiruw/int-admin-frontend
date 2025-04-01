@@ -19,6 +19,7 @@ export function UserInfo() {
     name: "John Smith",
     email: "johnson@nextadmin.com",
     img: "/images/user/user-01.png",
+    role: "Admin",
   };
 
   return (
@@ -35,9 +36,10 @@ export function UserInfo() {
             width={200}
             height={200}
           />
-          <figcaption className="flex items-center gap-1 font-medium text-dark dark:text-dark-6 max-[1024px]:sr-only">
-            <span>{USER.name}</span>
-
+          <figcaption className="flex  items-center font-medium text-dark dark:text-dark-6 max-[1024px]:sr-only">
+            <div className="flex items-start  flex-col mr-2"><span className="block">{USER.name}</span>
+              <span className="block text-gray-6 dark:text-dark-6 text-xs">{USER.role}</span>
+            </div>
             <ChevronUpIcon
               aria-hidden
               className={cn(
@@ -51,7 +53,7 @@ export function UserInfo() {
       </DropdownTrigger>
 
       <DropdownContent
-        className="border border-stroke bg-white shadow-md dark:border-dark-3 dark:bg-gray-dark min-[230px]:min-w-[17.5rem]"
+        className="z-99999 border border-stroke bg-white shadow-md dark:border-dark-3 dark:bg-gray-dark min-[230px]:min-w-[17.5rem]"
         align="end"
       >
         <h2 className="sr-only">User information</h2>

@@ -28,14 +28,22 @@ type DataTableProps<T> = {
   columns: { key: string; header: string }[];
   showTotals?: boolean;
   label: string;
+  sortable?: boolean;
+  selectable?: boolean;
+  selectedRows?: T[];
+  toggleSelectedRow?: (isSelected: boolean, row?: T) => void;
 };
 
-export function DataTable<T extends { id: string }>({
+export function DataTable<T extends {}>({
   data,
   preHeaders = [],
   columns,
   showTotals = false,
   label,
+  sortable = true,
+  selectable = false,
+  selectedRows = [],
+  toggleSelectedRow,
 }: DataTableProps<T>) {
 
   if (!data?.length || !columns?.length) {
@@ -53,7 +61,6 @@ export function DataTable<T extends { id: string }>({
       colIndex++;
     }
   });
-
 
   const [sortColumn, setSortColumn] = useState<string>("id");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
@@ -80,7 +87,7 @@ export function DataTable<T extends { id: string }>({
 
   return (
     <div className="mb-8  overflow-hidden">
-      {/* Header */}
+
       <div className="text-2xl font-semibold text-primary dark:text-primary-dark p-4">{label}</div>
 
       <Table className="w-full table-fixed">
@@ -100,15 +107,34 @@ export function DataTable<T extends { id: string }>({
           </TableRow>
 
           <TableRow className="border-none bg-[#F7F9FC] dark:bg-dark-2 [&>th]:py-4 [&>th]:text-base [&>th]:text-dark [&>th]:dark:text-white">
-            {columns.map(({ key, header }, index) => (
-              <TableHead
-                key={key}
-                onClick={() => handleSort(key)}
-                className={cn("cursor-pointer w-auto", columnColors[index])}
-              >
-                {header}{" "}
-                {sortColumn === key && (sortDirection === "asc" ? "↑" : "↓")}
+            {selectable && (
+              <TableHead className="w-10 text-center">
+                <input type="checkbox" className="w-4 h-4"
+                onChange={(e) => {toggleSelectedRow && toggleSelectedRow(e.target.checked)}}
+                />
               </TableHead>
+            )
+            }
+
+            {columns.map(({ key, header }, index) => (
+              sortable ? (
+                <TableHead
+                  key={key}
+                  onClick={() => handleSort(key)}
+                  className={cn("cursor-pointer w-auto", columnColors[index], index === 0 ? "text-left" : "text-right")}
+                >
+                  {header}{" "}
+                  {sortColumn === key && (sortDirection === "asc" ? "↑" : "↓")}
+                </TableHead>
+              ) : (
+                <TableHead
+                  key={key}
+                  className={cn("w-auto", columnColors[index], index === 0 ? "text-left" : "text-right")}
+                >
+                  {header}
+                </TableHead>
+
+              )
             ))}
 
           </TableRow>
@@ -118,6 +144,15 @@ export function DataTable<T extends { id: string }>({
           {sortedData.map((row, index) => {
             return (
               <TableRow key={row.id} className="border-[#eee] dark:border-dark-3">
+                {selectable && (
+                  <TableCell className="w-10 text-center">
+                    <input type="checkbox" className="w-4 h-4"
+                      onChange={(e) => { toggleSelectedRow && toggleSelectedRow(e.target.checked, row) }} checked={selectedRows.includes(row)}
+                    />
+                  </TableCell>
+                )}
+
+
                 {columns.map(({ key }, index) => (
                   <TableCell
                     key={key}

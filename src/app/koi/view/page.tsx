@@ -32,11 +32,10 @@ export default function Page() {
 
   useEffect(() => {
     let filteredData = data;
-    // if (filters.variety) {
-    //   filteredData = filteredData.filter((item) => filters.variety.includes(item.variety));
-    // }
+
     for (const key in filters) {
       if (filters[key].length) {
+        console.log('Filtering by:', key, filters[key]);
         filteredData = filteredData.filter((item) => filters[key].includes(item[key]));
       }
     }
@@ -47,6 +46,7 @@ export default function Page() {
 
 
   const resetFilters = () => {
+    setFilters({});
     setFilteredData(data);
     setIsReset(true);
     setTimeout(() => {
@@ -60,20 +60,20 @@ export default function Page() {
 
         <FilteredMultiSelectTextboxDropdown
           label="Variety"
-          items={formatDataForDropdown(data, 'variety')}
+          items={formatDataForDropdown(data, 'variety_name')}
           placeholder='Select Variety'
           onChange={(selectedValues) => {
-            setFilters((prev) => ({ ...prev, variety: selectedValues }));
+            setFilters((prev) => ({ ...prev, variety_name: selectedValues }));
           }}
           reset={isReset}
         />
 
         <FilteredMultiSelectTextboxDropdown
           label="Breeder"
-          items={formatDataForDropdown(data, 'breeder')}
+          items={formatDataForDropdown(data, 'breeder_name')}
           placeholder='Select Breeder'
           onChange={(selectedValues) => {
-            setFilters((prev) => ({ ...prev, breeder: selectedValues }));
+            setFilters((prev) => ({ ...prev, breeder_name: selectedValues }));
           }}
           reset={isReset}
         />

@@ -47,6 +47,7 @@ export async function GET(req: Request) {
   ).map((sale) => ({
     ...sale, jpy_profit_total: sale.jpy_total_sale - sale.jpy_total_cost,
     usd_profit_total: sale.usd_total_sale - sale.usd_total_cost,
+    total_kgs: sale.box_count * sale.weight_of_box,
   }));
 
 
