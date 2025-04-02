@@ -110,7 +110,7 @@ const Page = () => {
                     { key: "breeder_name", header: "Breeder" },
                     { key: "variety_name", header: "Variety" },
                     { key: "size_cm", header: "Size" },
-                    { key: "total_kgs", header: "Total Kgs" },
+                    { key: "total_weight", header: "Total Kgs" },
                     { key: "pcs", header: "Pcs" },
                     { key: "jpy_cost", header: "JPY Cost" },
                     { key: "jpy_total", header: "JPY Total Cost" },
