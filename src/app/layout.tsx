@@ -45,7 +45,7 @@ export default function RootLayout({ children }: PropsWithChildren) {
               </main>
             </div>
           </div>
-          </ LoadingProvider>
+          </LoadingProvider>
         </Providers>
       </body>
     </html>
