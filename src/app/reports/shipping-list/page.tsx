@@ -1,15 +1,19 @@
 'use client';
+import { useLoading } from '@/app/loading-context';
 import { DataTable } from '@/components/Layouts/tables/uneditable';
 import React, { useEffect, useState } from 'react'
 
 const page = () => {
+    const { setLoading } = useLoading();
     const [data, setData] = useState<ShippingData[][]>([]);
 
     useEffect(() => {
         const fetchData = async () => {
+            setLoading(true);
             const res = await fetch('/api/koi/shipping-list');
             const data = await res.json();
             setData(groupAndSortShippingData(data));
+            setLoading(false);
         }
         fetchData();
     }, []);
