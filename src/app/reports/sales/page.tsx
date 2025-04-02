@@ -4,9 +4,11 @@ import DatePickerOne from '@/components/FormElements/DatePicker/DatePickerOne';
 import { FilteredTextboxDropdown } from "@/components/FormElements/filteredselect";
 import { DataTable } from '@/components/Layouts/tables/uneditable';
 import { KoiSaleRecord } from '@/types/koi';
+import { useLoading } from '@/app/loading-context';
 
 
 const Page = () => {
+  const {setLoading} = useLoading();
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const [dateRange, setDateRange] = useState<string>('');
@@ -43,9 +45,11 @@ const Page = () => {
   };
 
   const fetchSales = async (start: string, end: string) => {
+    setLoading(true);
     const query = `/api/koi/sales?start=${start}&end=${end}`;
     const res = await fetch(query);
     const data = await res.json();
+    setLoading(false);
     return data;
   };
 

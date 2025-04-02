@@ -13,6 +13,10 @@ import type { PropsWithChildren } from "react";
 import { Providers } from "./providers";
 import { Toaster } from "react-hot-toast";
 
+import { LoadingProvider } from './loading-context'
+import LoadingScreen from '@/components/Layouts/LoadingScreen'
+
+
 export const metadata: Metadata = {
   title: {
     template: "%s | NextAdmin - Next.js Dashboard Kit",
@@ -28,7 +32,8 @@ export default function RootLayout({ children }: PropsWithChildren) {
       <body>
         <Providers>
           <NextTopLoader showSpinner={false} />
-
+          <LoadingProvider>
+          <LoadingScreen />
           <div className="flex min-h-screen">
             <Sidebar />
 
@@ -40,6 +45,7 @@ export default function RootLayout({ children }: PropsWithChildren) {
               </main>
             </div>
           </div>
+          </LoadingProvider>
         </Providers>
       </body>
     </html>
