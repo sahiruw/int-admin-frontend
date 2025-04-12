@@ -5,37 +5,65 @@ import React, { useEffect, useState } from 'react'
 
 const page = () => {
     const { setLoading } = useLoading();
-    const [data, setData] = useState<ShippingData[][]>([]);
+    const [dataWithDate, setDataWithDate] = useState<ShippingData[][]>([]);
+    const [dataWithoutDate, setDataWithoutDate] = useState<ShippingData[][]>([]);
 
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
             const res = await fetch('/api/koi/shipping-list');
             const data = await res.json();
-            setData(groupAndSortShippingData(data));
+            let groupedData = groupAndSortShippingData(data);
+            
+            setDataWithDate(groupedData.filter(group => group[0].date));
+            setDataWithoutDate(groupedData.filter(group => !group[0].date));
+            
             setLoading(false);
         }
         fetchData();
     }, []);
 
     return (
-        <div className="rounded-[10px] bg-white shadow-1 dark:bg-gray-dark dark:shadow-card p-2" style={{ height: '80vh', overflow: 'auto', display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
-
-            {data.map((group, index) => (
-            <div key={index} style={{ flex: '1 1 calc(50% - 16px)', minWidth: '300px' }} className='border border-gray-200 dark:border-gray-700 rounded-lg'>
+        <div className="rounded-[10px] bg-white shadow-1 dark:bg-gray-dark dark:shadow-card p-2" style={{ height: '80vh', display: 'flex', gap: '16px' }}>
+            {/* Left Column: Data Without Date */}
+            <div style={{ flex: '1', overflowY: 'auto', borderRadius: '8px' }} className="dark:border-gray-700">
+            {dataWithoutDate.map((group, index) => (
+                <div key={index} style={{ marginBottom: '16px' }}>
                 <DataTable
-                data={group}
-                columns={[
+                    data={group}
+                    columns={[
                     { key: 'name', header: 'Breeder' },
                     { key: 'total_koi', header: 'Total Koi' },
                     { key: 'total_boxes', header: 'Total Boxes' },
                     { key: 'total_kg', header: 'Total KG' },
-                ]}
-                label={group?.[0]?.date || ''}
-                showTotals={true}
+                    ]}
+                    label={group?.[0]?.date || ''}
+                    showTotals={true}
+                    key={index} // Add a unique key for each group
                 />
-            </div>
+                </div>
             ))}
+            </div>
+
+            {/* Right Column: Data With Date */}
+            <div style={{ flex: '1', overflowY: 'auto', borderRadius: '8px' }} className="dark:border-gray-700">
+            {dataWithDate.map((group, index) => (
+                <div key={index} style={{ marginBottom: '16px' }}>
+                <DataTable
+                    data={group}
+                    columns={[
+                    { key: 'name', header: 'Breeder' },
+                    { key: 'total_koi', header: 'Total Koi' },
+                    { key: 'total_boxes', header: 'Total Boxes' },
+                    { key: 'total_kg', header: 'Total KG' },
+                    ]}
+                    label={group?.[0]?.date || ''}
+                    showTotals={true}
+                    key={index} // Add a unique key for each group
+                />
+                </div>
+            ))}
+            </div>
         </div>
     )
 }
