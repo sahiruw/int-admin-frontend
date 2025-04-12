@@ -1,18 +1,34 @@
 import { createClient } from "@/utils/supabase/supabase";
 import { KoiInfo } from "@/types/koi";
 
-export async function GET() {
+export async function GET(request: Request) {
   const supabaseClient = await createClient();
+
+  // Extract breeder_id from query parameters
+  const { searchParams } = new URL(request.url);
+  const breederId = searchParams.get("breeder_id");
+  const shipped = searchParams.get("shipped");
 
   let allData: any[] = [];
   const limit = 1000;
   let offset = 0;
 
   while (true) {
-    const { data, error } = await supabaseClient
+    let query = supabaseClient
       .from("koi_details_view")
       .select("*")
       .range(offset, offset + limit - 1);
+
+    // Apply filter if breeder_id is present
+    if (breederId) {
+      query = query.eq("breeder_id", breederId);
+    }
+    // Apply filter if shipped is present
+    if (shipped) {
+      query = query.eq("shipped", shipped);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       return new Response(
@@ -35,8 +51,6 @@ export async function GET() {
     offset += limit;
   }
 
-
-
   return new Response(JSON.stringify(allData), {
     status: 200,
     headers: {
@@ -44,6 +58,7 @@ export async function GET() {
     },
   });
 }
+
 
 export async function POST(req: Request) {
   const supabaseClient = await createClient();
@@ -74,13 +89,14 @@ export async function POST(req: Request) {
       }
     );
   }
-
-  const { data, error } = await supabaseClient.from("koiinfo").insert(payload);
+  console.log("Payload", payload);
+  const { data, error } = await supabaseClient.from("koiinfo").upsert(payload);
 
   if (error || configError) {
     let errMsg = error
       ? error.message
       : configError?.message || "Unknown error";
+      console.log("Error", errMsg);
     return new Response(
       JSON.stringify({
         message: "An error occurred while adding koi",
