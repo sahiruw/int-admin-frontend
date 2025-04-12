@@ -143,7 +143,7 @@ export function DataTable<T extends {}>({
         <TableBody>
           {sortedData.map((row, index) => {
             return (
-              <TableRow key={row.id} className="border-[#eee] dark:border-dark-3">
+              <TableRow key={index} className="border-[#eee] dark:border-dark-3">
                 {selectable && (
                   <TableCell className="w-10 text-center">
                     <input type="checkbox" className="w-4 h-4"
