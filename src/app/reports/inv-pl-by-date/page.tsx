@@ -72,7 +72,7 @@ const Page = () => {
     };
 
     return (
-        <div className="rounded-[10px] bg-white shadow-1 dark:bg-gray-dark dark:shadow-card p-8 space-y-4" style={{ height: "80vh", overflowY: "auto" }}>
+        <div className="rounded-[10px] bg-white shadow-1 dark:bg-gray-dark dark:shadow-card px-8 pt-4 space-y-4" style={{ height: "85vh", overflowY: "auto" }}>
             <ConfirmationDialog
                 isOpen={isConfirmationDialogOpen}
                 title="Mark as Shipped"

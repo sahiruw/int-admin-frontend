@@ -24,11 +24,11 @@ const page = () => {
     }, []);
 
     return (
-        <div className="rounded-[10px] bg-white shadow-1 dark:bg-gray-dark dark:shadow-card p-2" style={{ height: '80vh', display: 'flex', gap: '16px' }}>
+        <div className="rounded-[10px] bg-white shadow-1 dark:bg-gray-dark dark:shadow-card p-2" style={{ height: '85vh', display: 'flex', gap: '16px' }}>
             {/* Left Column: Data Without Date */}
             <div style={{ flex: '1', overflowY: 'auto', borderRadius: '8px' }} className="dark:border-gray-700">
             {dataWithoutDate.map((group, index) => (
-                <div key={index} style={{ marginBottom: '16px' }}>
+                <div key={index} className='border-2 rounded-xl p-2'>
                 <DataTable
                     data={group}
                     columns={[
@@ -37,9 +37,10 @@ const page = () => {
                     { key: 'total_boxes', header: 'Total Boxes' },
                     { key: 'total_kg', header: 'Total KG' },
                     ]}
-                    label={group?.[0]?.date || ''}
+                    label={group?.[0]?.date || 'Date not assigned'}
                     showTotals={true}
                     key={index} // Add a unique key for each group
+                    maxHeight='80vh'
                 />
                 </div>
             ))}
@@ -48,7 +49,7 @@ const page = () => {
             {/* Right Column: Data With Date */}
             <div style={{ flex: '1', overflowY: 'auto', borderRadius: '8px' }} className="dark:border-gray-700">
             {dataWithDate.map((group, index) => (
-                <div key={index} style={{ marginBottom: '16px' }}>
+                <div key={index} className='mb-4 border-2 rounded-xl p-2'>
                 <DataTable
                     data={group}
                     columns={[
