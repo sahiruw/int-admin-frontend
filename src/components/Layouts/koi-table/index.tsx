@@ -15,7 +15,7 @@ import { useState } from "react";
 import { KoiInfo } from "@/types/koi";
 
 
-export function KoiInfoTable({ data }: { data: KoiInfo[] }) {
+export function KoiInfoTable({ data, setEditingKoiId }: { data: KoiInfo[]; setEditingKoiId: (id: string | null) => void }) {
   const pageSizeOptions = [5, 10, 20, 50, 100];
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -125,6 +125,7 @@ export function KoiInfoTable({ data }: { data: KoiInfo[] }) {
                     <button
                       className="hover:text-primary-600"
                       title="Edit"
+                      onClick={() => setEditingKoiId(row.picture_id)}
                     >
                       <EditIcon className="w-5 h-5" />
                     </button>

@@ -53,6 +53,18 @@ export const NAV_DATA = [
         icon: Leaf,
         items: [],
       },
+      {
+        title: "Customers",
+        url: "/customers",
+        icon: Users,
+        items: [],
+      },
+      {
+        title: "Shipping Locations",
+        url: "/shipping-locations",
+        icon: Leaf,
+        items: [],
+      },
     ],
   },
   {
