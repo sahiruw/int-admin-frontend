@@ -87,7 +87,7 @@ export function FilteredMultiSelectTextboxDropdown({
             setIsOpen(true);
             setSearch("");
           }}
-        //   onBlur={() => setTimeout(() => setIsOpen(false), 200)}
+          onBlur={() => setTimeout(() => setIsOpen(false), 200)}
           className={cn(
             "w-full rounded-lg border border-stroke bg-transparent px-5.5 py-2 outline-none transition focus:border-primary active:border-primary dark:border-dark-3 dark:bg-dark-2 dark:focus:border-primary",
             { "cursor-pointer": !isOpen }
@@ -104,7 +104,7 @@ export function FilteredMultiSelectTextboxDropdown({
 
       {isOpen && filteredItems.length > 0 && (
         <div className="absolute z-10 mt-1 w-full rounded-lg border border-stroke bg-white dark:bg-dark-2 shadow-md max-h-40 overflow-y-auto"
-        onMouseLeave={() => setIsOpen(false)}
+        // onMouseLeave={() => setIsOpen(false)}
         >
           <div className="flex justify-between px-5.5 py-2 border-b border-stroke dark:border-dark-3">
             <button
