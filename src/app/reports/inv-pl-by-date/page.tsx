@@ -13,9 +13,11 @@ import React, { useEffect, useMemo, useState } from 'react'
 const Page = () => {
     const { setLoading } = useLoading();
     const [data, setData] = useState<KoiSaleRecord[]>([]);
+    const [selectedBreeder, setSelectedBreeder] = useState<string>("");
     const [selectedDate, setSelectedDate] = useState("");
     const [selectedRows, setSelectedRows] = useState<string[]>([]);
     const [isConfirmationDialogOpen, setIsConfirmationDialogOpen] = useState(false);
+    const [tableData, setTableData] = useState<KoiSaleRecord[]>([]);
 
     // Fetch koi sales data
     useEffect(() => {
@@ -24,7 +26,7 @@ const Page = () => {
                 setLoading(true);
                 const res = await fetch("/api/koi");
                 const rawData: KoiSaleRecord[] = await res.json();
-                const filtered = rawData.reverse().filter((record) => record.date && !record.shipped);
+                const filtered = rawData.filter((record) => record.date && !record.shipped);
                 setData(filtered);
             } catch (error) {
                 console.error("Failed to fetch koi sales data:", error);
@@ -37,6 +39,16 @@ const Page = () => {
         fetchData();
     }, []);
 
+    // Group records by date and breeder
+    useEffect(() => {
+        if (data.length > 0) {
+            console.log("Data changed:", selectedDate, selectedBreeder);
+            const grouped = groupRecords(data, selectedDate, selectedBreeder);
+            console.log("Grouped data:", grouped.length);
+            setTableData(grouped);
+        }
+    }, [data, selectedDate, selectedBreeder]);
+
     // Unique dates for dropdown
     const uniqueDates = useMemo(
         () =>
@@ -46,20 +58,22 @@ const Page = () => {
         [data]
     );
 
-    // Filtered data for selected date
-    const tableData = useMemo(
-        () => (selectedDate ? groupRecords(data, selectedDate) : []),
-        [selectedDate, data]
+    const uniqueBreeders = useMemo(
+        () =>
+            Array.from(new Set(tableData.map((record) => record.breeder_name))).sort(),
+        [tableData]
     );
+
+
 
     useEffect(() => {
         setSelectedRows([]);
     }
         , [selectedDate]);
 
-    useEffect(() => {
-        setSelectedDate(uniqueDates[0]);
-    }, [uniqueDates]);
+    // useEffect(() => {
+    //     setSelectedDate(uniqueDates[5]);
+    // }, [uniqueDates]);
 
     const toggleSelectedRow = (isSelected: boolean, row?: KoiSaleRecord) => {
         if (row) {
@@ -73,6 +87,7 @@ const Page = () => {
 
     return (
         <div className="rounded-[10px] bg-white shadow-1 dark:bg-gray-dark dark:shadow-card px-8 pt-4 space-y-4" style={{ height: "85vh", overflowY: "auto" }}>
+            {/* {JSON.stringify(tableData)} */}
             <ConfirmationDialog
                 isOpen={isConfirmationDialogOpen}
                 title="Mark as Shipped"
@@ -89,6 +104,27 @@ const Page = () => {
             <div className="flex items-center gap-4">
                 <label className="font-medium text-gray-600 dark:text-gray-300">Ship Date:</label>
                 <Picker value={selectedDate} setValue={setSelectedDate} items={uniqueDates} />
+
+                <label className="font-medium text-gray-600 dark:text-gray-300">Breeder:</label>
+                <Picker 
+                    value={selectedBreeder} 
+                    setValue={setSelectedBreeder} 
+                    items={uniqueBreeders} 
+                    disabled={!selectedDate} 
+                />
+
+                {/* // clear breeder filter button */}
+                <button
+                    className="px-2 py-0.5 text-red-500 border-red-500 border-2 rounded hover:opacity-80 hover:bg-red-500 hover:text-white"
+                    onClick={() => {
+                        setSelectedBreeder("");
+                        setSelectedDate("");
+                    }}
+                >
+                    Clear Filters
+                </button>
+
+
                 <button
                     className={cn("ml-auto px-4 py-2 bg-primary text-white rounded hover:opacity-80", {
                         "cursor-not-allowed opacity-80": selectedRows.length === 0
@@ -115,7 +151,7 @@ const Page = () => {
                     { key: "jpy_cost", header: "JPY Cost" },
                     { key: "jpy_total", header: "JPY Total Cost" },
                     { key: "box_count", header: "Box Count" },
-                    
+
                 ]}
                 label=''
                 sortable={false}
@@ -132,8 +168,11 @@ export default Page;
 
 
 
-function groupRecords(records: KoiSaleRecord[], date: string) {
-    let groupedRecords = records.filter(record => record.date === date);
+
+
+function groupRecords(records: KoiSaleRecord[], date: string, breeder: string) {
+    // Filter by date and breeder
+    let groupedRecords = records.filter(record => (record.date === date || date === "") && (record.breeder_name === breeder || breeder === ""));
 
     // Sort by breeder name then grouping
     groupedRecords = groupedRecords.sort((a, b) => {
