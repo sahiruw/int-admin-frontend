@@ -112,11 +112,11 @@ export function DropdownContent({
   );
 }
 
-type DropdownTriggerProps = React.HTMLAttributes<HTMLButtonElement> & {
+type DropdownTriggerProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   children: React.ReactNode;
 };
 
-export function DropdownTrigger({ children, className }: DropdownTriggerProps) {
+export function DropdownTrigger({ children, className, disabled=false }: DropdownTriggerProps) {
   const { handleOpen, isOpen } = useDropdownContext();
 
   return (
@@ -126,6 +126,7 @@ export function DropdownTrigger({ children, className }: DropdownTriggerProps) {
       aria-expanded={isOpen}
       aria-haspopup="menu"
       data-state={isOpen ? "open" : "closed"}
+      disabled={disabled}
     >
       {children}
     </button>
