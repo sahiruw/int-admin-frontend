@@ -8,7 +8,7 @@ import { useLoading } from '@/app/loading-context';
 
 
 const Page = () => {
-  const {setLoading} = useLoading();
+  const { setLoading } = useLoading();
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const [dateRange, setDateRange] = useState<string>('');
@@ -128,52 +128,52 @@ const Page = () => {
 
       {/* <div className='overflow-y-scroll'> */}
 
-        <DataTable data={dataBYCustomer} columns={[
-          { key: 'customer_name', header: 'Customer' },
-          { key: 'pcs', header: 'Pcs' },
-          { key: 'jpy_total_sale', header: 'Sales' },
-          { key: 'jpy_total_cost', header: 'Cost' },
-          { key: 'jpy_profit_total', header: 'Profit' },
+      <DataTable data={dataBYCustomer} columns={[
+        { key: 'customer_name', header: 'Customer' },
+        { key: 'pcs', header: 'Pcs' },
+        { key: 'jpy_total_sale', header: 'Sales' },
+        { key: 'jpy_total_cost', header: 'Cost' },
+        { key: 'jpy_profit_total', header: 'Profit' },
 
-          { key: 'usd_total_sale', header: 'Sales' },
-          { key: 'usd_total_cost', header: 'Cost' },
-          { key: 'usd_profit_total', header: 'Profit' },
-        ]} showTotals={true} preHeaders={precols}
-          label='Sales by Customer'
-        />
+        { key: 'usd_total_sale', header: 'Sales' },
+        { key: 'usd_total_cost', header: 'Cost' },
+        { key: 'usd_profit_total', header: 'Profit' },
+      ]} showTotals={true} preHeaders={precols}
+        label='Sales by Customer'
+      />
       {/* </div>
       <div className='overflow-y-scroll'> */}
-        <DataTable data={dataBYBreeder} columns={[
-          { key: 'breeder_name', header: 'Breeder' },
-          { key: 'pcs', header: 'Pcs' },
-          { key: 'jpy_total_sale', header: 'Sales' },
-          { key: 'jpy_total_cost', header: 'Cost' },
-          { key: 'jpy_profit_total', header: 'Profit' },
 
-          { key: 'usd_total_sale', header: 'Sales' },
-          { key: 'usd_total_cost', header: 'Cost' },
-          { key: 'usd_profit_total', header: 'Profit' },
-        ]} showTotals={true} preHeaders={precols}
-          label='Sales by Breeder'
-        />
 
       {/* </div>
       <div className='overflow-y-scroll'> */}
-        <DataTable data={dataBYDivision} columns={[
-          { key: 'location_name', header: 'Division' },
-          { key: 'pcs', header: 'Pcs' },
-          { key: 'jpy_total_sale', header: 'Sales' },
-          { key: 'jpy_total_cost', header: 'Cost' },
-          { key: 'jpy_profit_total', header: 'Profit' },
+      <DataTable data={dataBYDivision} columns={[
+        { key: 'location_name', header: 'Division' },
+        { key: 'pcs', header: 'Pcs' },
+        { key: 'jpy_total_sale', header: 'Sales' },
+        { key: 'jpy_total_cost', header: 'Cost' },
+        { key: 'jpy_profit_total', header: 'Profit' },
 
-          { key: 'usd_total_sale', header: 'Sales' },
-          { key: 'usd_total_cost', header: 'Cost' },
-          { key: 'usd_profit_total', header: 'Profit' },
-        ]} showTotals={true} preHeaders={precols}
-          label='Sales by Division'
-        />
+        { key: 'usd_total_sale', header: 'Sales' },
+        { key: 'usd_total_cost', header: 'Cost' },
+        { key: 'usd_profit_total', header: 'Profit' },
+      ]} showTotals={true} preHeaders={precols}
+        label='Sales by Division'
+      />
 
+      <DataTable data={dataBYBreeder} columns={[
+        { key: 'breeder_name', header: 'Breeder' },
+        { key: 'pcs', header: 'Pcs' },
+        { key: 'jpy_total_sale', header: 'Sales' },
+        { key: 'jpy_total_cost', header: 'Cost' },
+        { key: 'jpy_profit_total', header: 'Profit' },
 
+        { key: 'usd_total_sale', header: 'Sales' },
+        { key: 'usd_total_cost', header: 'Cost' },
+        { key: 'usd_profit_total', header: 'Profit' },
+      ]} showTotals={true} preHeaders={precols}
+        label='Purchases by Breeder'
+      />
       {/* </div> */}
 
 

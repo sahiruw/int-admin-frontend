@@ -1,3 +1,24 @@
+export type Varity = {
+  id: number;
+  variety: string;
+  woo_variety: string;
+}
+
+export type Breeder = {
+  id: number;
+  name: string;
+}
+
+export type Customer = {
+  id: number;
+  name: string;
+}
+
+export type Location = {
+  id: number;
+  name: string;
+}
+
 export interface KoiInfo {
   timestamp: Date;
   picture_id: string;
@@ -56,3 +77,12 @@ export type KoiSaleRecord = {
   usd_total_cost: number;
   usd_profit_total: number;
 };
+
+
+export interface ShippingData {
+  picture_id: string;
+  date: string;
+  box_count: number;
+  box_size: number;
+  weight_of_box: number;
+}

@@ -66,7 +66,7 @@ export function DataTable<T extends { id: string }>({
     }
   };
 
-  const sortedData = [...data].sort((a, b) => {
+  const sortedData = data.length ? [...data].sort((a, b) => {
     if (!sortColumn) return 0;
     const aValue = (a as any)[sortColumn];
     const bValue = (b as any)[sortColumn];
@@ -74,7 +74,7 @@ export function DataTable<T extends { id: string }>({
     if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
     if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
     return 0;
-  });
+  }) : [];
 
   const handleEditClick = (row: T) => {
     setEditingId(row.id);

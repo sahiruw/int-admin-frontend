@@ -32,6 +32,7 @@ type DataTableProps<T> = {
   selectable?: boolean;
   selectedRows?: T[];
   toggleSelectedRow?: (isSelected: boolean, row?: T) => void;
+  maxHeight?: string;
 };
 
 export function DataTable<T extends {}>({
@@ -44,6 +45,7 @@ export function DataTable<T extends {}>({
   selectable = false,
   selectedRows = [],
   toggleSelectedRow,
+  maxHeight = "75vh",
 }: DataTableProps<T>) {
 
   if (!data?.length || !columns?.length) {
@@ -86,14 +88,15 @@ export function DataTable<T extends {}>({
 
 
   return (
-    <div className="mb-8  overflow-hidden">
+    <div className="overflow-y-auto" style={{ maxHeight: maxHeight, overflowY: "auto" }}>
 
-      <div className="text-2xl font-semibold text-primary dark:text-primary-dark p-4">{label}</div>
+      {label && <div className="text-2xl font-semibold text-primary dark:text-primary-dark p-4">{label}</div>}
 
       <Table className="w-full table-fixed">
 
         <TableHeader>
-          <TableRow className=" border-none bg-[#F7F9FC] dark:bg-dark-2 [&>th]:py-4 [&>th]:text-base [&>th]:text-dark [&>th]:dark:text-white">
+          {preHeaders.length > 0 && 
+          <TableRow className="sticky z-10  border-none bg-[#F7F9FC] dark:bg-dark-2 [&>th]:py-4 [&>th]:text-base [&>th]:text-dark [&>th]:dark:text-white">
             {preHeaders.map(({ header, colspan, color }) => (
               <TableHead
                 key={header}
@@ -104,13 +107,13 @@ export function DataTable<T extends {}>({
               </TableHead>
             ))}
 
-          </TableRow>
+          </TableRow>}
 
-          <TableRow className="border-none bg-[#F7F9FC] dark:bg-dark-2 [&>th]:py-4 [&>th]:text-base [&>th]:text-dark [&>th]:dark:text-white">
+          <TableRow className="sticky z-10 border-none bg-[#F7F9FC] dark:bg-dark-2 [&>th]:py-4 [&>th]:text-base [&>th]:text-dark [&>th]:dark:text-white">
             {selectable && (
               <TableHead className="w-10 text-center">
                 <input type="checkbox" className="w-4 h-4"
-                onChange={(e) => {toggleSelectedRow && toggleSelectedRow(e.target.checked)}}
+                  onChange={(e) => { toggleSelectedRow && toggleSelectedRow(e.target.checked) }}
                 />
               </TableHead>
             )
@@ -143,7 +146,7 @@ export function DataTable<T extends {}>({
         <TableBody>
           {sortedData.map((row, index) => {
             return (
-              <TableRow key={row.id} className="border-[#eee] dark:border-dark-3">
+              <TableRow key={index} className="border-[#eee] dark:border-dark-3">
                 {selectable && (
                   <TableCell className="w-10 text-center">
                     <input type="checkbox" className="w-4 h-4"

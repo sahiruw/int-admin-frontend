@@ -19,12 +19,6 @@ export const NAV_DATA = [
     label: "KOI MANAGEMENT",
     items: [
       {
-        title: "Add Koi",
-        url: "/koi/add",
-        icon: PlusCircle,
-        items: [],
-      },
-      {
         title: "Bulk Add",
         url: "/koi/bulk-add",
         icon: PlusCircle,
@@ -50,6 +44,18 @@ export const NAV_DATA = [
       {
         title: "Varieties",
         url: "/varieties",
+        icon: Leaf,
+        items: [],
+      },
+      {
+        title: "Customers",
+        url: "/customers",
+        icon: Users,
+        items: [],
+      },
+      {
+        title: "Shipping Locations",
+        url: "/shipping-locations",
         icon: Leaf,
         items: [],
       },

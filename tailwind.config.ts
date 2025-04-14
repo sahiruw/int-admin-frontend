@@ -374,6 +374,7 @@ const config: Config = {
         line1: "line 10s infinite linear",
         line2: "line-revert 8s infinite linear",
         line3: "line 7s infinite linear",
+        'spin-slow': 'spin 2.5s linear infinite',
       },
     },
   },
