@@ -25,7 +25,7 @@ const Page = () => {
         const fetchData = async () => {
             try {
                 setLoading(true);
-                const res = await fetch("/api/koi");
+                const res = await fetch('/api/koi', { next: { revalidate: 300 } });
                 const rawData: KoiSaleRecord[] = await res.json();
                 const filtered = rawData.filter((record) => record.date && !record.shipped);
                 setData(filtered);

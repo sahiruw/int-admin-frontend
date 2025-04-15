@@ -1,13 +1,26 @@
 import { createClient } from "@/utils/supabase/supabase";
 import { KoiInfo } from "@/types/koi";
+import { clearCacheMatchingKeyPattern, getCache, setCache } from "@/utils/cache";
 
 export async function GET(request: Request) {
   const supabaseClient = await createClient();
 
-  // Extract breeder_id from query parameters
   const { searchParams } = new URL(request.url);
   const breederId = searchParams.get("breeder_id");
   const shipped = searchParams.get("shipped");
+
+  const cacheKey = `koi_${breederId || "all"}_${shipped ?? "any"}`;
+  const cachedData = getCache(cacheKey);
+
+  if (cachedData) {
+    return new Response(JSON.stringify(cachedData), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+        "X-Cache": "HIT",
+      },
+    });
+  }
 
   let allData: any[] = [];
   const limit = 1000;
@@ -19,14 +32,8 @@ export async function GET(request: Request) {
       .select("*")
       .range(offset, offset + limit - 1);
 
-    // Apply filter if breeder_id is present
-    if (breederId) {
-      query = query.eq("breeder_id", breederId);
-    }
-    // Apply filter if shipped is present
-    if (shipped) {
-      query = query.eq("shipped", shipped);
-    }
+    if (breederId) query = query.eq("breeder_id", breederId);
+    if (shipped) query = query.eq("shipped", shipped);
 
     const { data, error } = await query;
 
@@ -43,18 +50,19 @@ export async function GET(request: Request) {
       );
     }
 
-    if (!data || data.length === 0) {
-      break; // No more data to fetch
-    }
+    if (!data || data.length === 0) break;
 
     allData.push(...data);
     offset += limit;
   }
 
+  setCache(cacheKey, allData, 3000); // cache for 5 minutes
+
   return new Response(JSON.stringify(allData), {
     status: 200,
     headers: {
       "Content-Type": "application/json",
+      "X-Cache": "MISS",
     },
   });
 }
@@ -110,7 +118,7 @@ export async function POST(req: Request) {
       }
     );
   }
-
+  clearCacheMatchingKeyPattern("koi_*");
   return new Response(
     JSON.stringify({
       message: "Koi added successfully",
