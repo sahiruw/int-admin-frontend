@@ -1,7 +1,21 @@
+import { getCache , setCache} from "@/utils/cache";
 import { createClient } from "@/utils/supabase/supabase";
 
 export async function GET(req: Request) {
   const supabaseClient = await createClient();
+
+  const cacheKey = `koi_summary`;
+    const cachedData = getCache(cacheKey);
+  
+    if (cachedData) {
+      return new Response(JSON.stringify(cachedData), {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "X-Cache": "HIT",
+        },
+      });
+    }
 
   const { data, error } = await supabaseClient.rpc("get_koi_summary");
 
@@ -17,6 +31,8 @@ export async function GET(req: Request) {
       }
     );
   }
+
+  setCache(cacheKey, data, 3000); // cache for 5 minutes
 
   return new Response(JSON.stringify(data), {
     status: 200,
