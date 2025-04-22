@@ -24,52 +24,51 @@ const page = () => {
     }, []);
 
     return (
-        <div className="rounded-[10px] bg-white shadow-1 dark:bg-gray-dark dark:shadow-card p-2" style={{ height: '85vh', display: 'flex', gap: '16px' }}>
+        <div className="grid grid-cols-3 gap-4 rounded-[10px] bg-white shadow-1 dark:bg-gray-dark dark:shadow-card p-2 " style={{ height: '83vh' }}>
             {/* Left Column: Data Without Date */}
-            <div style={{ flex: '1', overflowY: 'auto', borderRadius: '8px' }} className="dark:border-gray-700">
-            {dataWithoutDate.map((group, index) => (
-                <div key={index} className='border-2 rounded-xl p-2'>
-                <DataTable
-                    data={group}
-                    columns={[
-                    { key: 'name', header: 'Breeder' },
-                    { key: 'total_koi', header: 'Total Koi' },
-                    { key: 'total_boxes', header: 'Total Boxes' },
-                    { key: 'total_kg', header: 'Total KG' },
-                    ]}
-                    label={group?.[0]?.date || 'Date not assigned'}
-                    showTotals={true}
-                    key={index} // Add a unique key for each group
-                    maxHeight='80vh'
-                />
-                </div>
-            ))}
+            <div className="overflow-y-auto rounded-md col-span-1">
+                {dataWithoutDate.map((group, index) => (
+                    <div key={index} className='border-2 rounded-xl p-2'>
+                        <DataTable
+                            data={group}
+                            columns={[
+                                { key: 'name', header: 'Breeder' },
+                                { key: 'total_koi', header: 'Total Koi' },
+                                { key: 'total_boxes', header: 'Total Boxes' },
+                                { key: 'total_kg', header: 'Total KG' },
+                            ]}
+                            label={group?.[0]?.date || 'Date not assigned'}
+                            showTotals={true}
+                            maxHeight='78vh'
+                        />
+                    </div>
+                ))}
             </div>
 
-            {/* Right Column: Data With Date */}
-            <div style={{ flex: '1', overflowY: 'auto', borderRadius: '8px' }} className="dark:border-gray-700">
-            {dataWithDate.map((group, index) => (
-                <div key={index} className='mb-4 border-2 rounded-xl p-2'>
-                <DataTable
-                    data={group}
-                    columns={[
-                    { key: 'name', header: 'Breeder' },
-                    { key: 'total_koi', header: 'Total Koi' },
-                    { key: 'total_boxes', header: 'Total Boxes' },
-                    { key: 'total_kg', header: 'Total KG' },
-                    ]}
-                    label={group?.[0]?.date || ''}
-                    showTotals={true}
-                    key={index} // Add a unique key for each group
-                />
-                </div>
-            ))}
+            {/* Right Column: Data With Date (2/3 width) */}
+            <div className="overflow-y-auto rounded-md col-span-2 grid grid-cols-2 gap-4">
+                {dataWithDate.map((group, index) => (
+                    <div key={index} className='border-2 rounded-xl p-2'>
+                        <DataTable
+                            data={group}
+                            columns={[
+                                { key: 'name', header: 'Breeder' },
+                                { key: 'total_koi', header: 'Total Koi' },
+                                { key: 'total_boxes', header: 'Total Boxes' },
+                                { key: 'total_kg', header: 'Total KG' },
+                            ]}
+                            label={group?.[0]?.date || ''}
+                            showTotals={true}
+                        />
+                    </div>
+                ))}
             </div>
         </div>
     )
 }
 
-export default page
+export default page;
+
 
 
 
