@@ -182,13 +182,48 @@ const Page = () => {
     }
 
 
-    const handleThumbnailSheetGeneration = () => {
-        let data = tableData.map(
-            row => row.picture_id
-        );
-        const encodedData = encodeURIComponent(JSON.stringify(data));
-        window.location.href = `/reports/thumbnail-sheet?data=${encodedData}`;
-    }
+    const handleThumbnailSheetGeneration = async () => {
+        setLoading(true);
+        try {
+          const data = tableData.map(row => ({
+            picture_id: row.picture_id,
+            variety: row.variety_name,
+            size: row.size_cm,
+          }));
+      
+          const response = await fetch('/api/thumbnails/pdf', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ items: data }),
+          });
+      
+          if (!response.ok) {
+            throw new Error('Failed to generate PDF');
+          }
+      
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+      
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = 'thumbnail-sheet.pdf'; // Name of the downloaded file
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+      
+          // Cleanup the blob URL after download
+          window.URL.revokeObjectURL(url);
+      
+        } catch (error) {
+          console.error('Error generating or downloading PDF:', error);
+        }
+        finally {
+          setLoading(false);
+        }
+      };
+      
 
     return (
         <div className="rounded-[10px] bg-white shadow-1 dark:bg-gray-dark dark:shadow-card px-8 pt-4 space-y-4" style={{ height: "85vh", overflowY: "auto" }}>
