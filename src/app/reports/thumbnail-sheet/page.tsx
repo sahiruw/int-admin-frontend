@@ -25,7 +25,6 @@ export default function ThumbnailSheetPage() {
   useEffect(() => {
     const fetchData = async () => {
         try {
-            setLoading(true);
             const res = await fetch('/api/koi', { next: { revalidate: 300 } });
             const rawData: KoiSaleRecord[] = await res.json();
             const filtered = rawData.filter((record) => record.date && !record.shipped);
@@ -33,9 +32,6 @@ export default function ThumbnailSheetPage() {
         } catch (error) {
             console.error("Failed to fetch koi sales data:", error);
             toast.error("Failed to fetch koi sales data");
-        }
-        finally {
-            setLoading(false);
         }
     };
 

@@ -1,49 +1,31 @@
-import { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
-import PuppeteerHTMLPDF from "puppeteer-html-pdf";
+import { NextRequest, NextResponse } from "next/server";
+import puppeteer from "puppeteer";
 import hbs from "handlebars";
 import { getImageBlobById } from "@/utils/google/google-drive-pictures";
 
 export async function POST(req: NextRequest) {
   try {
-    let { items } = await req.json();
+    const { items } = await req.json();
 
+    // Fetch images and convert to base64 data URLs
     const itemsWithImages = await Promise.all(
       items.map(async (item) => {
         try {
           const response = await getImageBlobById(item.picture_id);
-
           if (response) {
-            const { buffer, mimeType } = await response;
-
-            // // Decode base64 and create Blob
-            // const byteCharacters = atob(buffer);
-            // const byteNumbers = Array.from(byteCharacters).map((char) =>
-            //   char.charCodeAt(0)
-            // );
-            // const byteArray = new Uint8Array(byteNumbers);
-            // const blob = new Blob([byteArray], { type: mimeType });
-            // const objectUrl = URL.createObjectURL(blob);
-
-            // return { ...item, imageUrl: objectUrl };
-            return { ...item, imageUrl: `data:${mimeType};base64,${buffer}` };
+            const { buffer, mimeType } = response;
+            const base64 = buffer.toString("base64");
+            return { ...item, imageUrl: `data:${mimeType};base64,${base64}` };
           }
-
-          return item
-
+          return item;
         } catch (error) {
           console.error("Error fetching image:", error);
-          return item; 
+          return item;
         }
       })
     );
 
-    console.log("Items with images:", itemsWithImages);
-
-    const htmlPDF = new PuppeteerHTMLPDF();
-    htmlPDF.setOptions({ format: "A4" });
-
-    // Create a simple HTML template
+    // Generate HTML content with Handlebars
     const htmlTemplate = `
       <html>
       <head>
@@ -56,7 +38,6 @@ export async function POST(req: NextRequest) {
         </style>
       </head>
       <body>
-      Hi huttho
         <div class="grid">
           {{#each items}}
           <div class="card">
@@ -76,7 +57,33 @@ export async function POST(req: NextRequest) {
     const template = hbs.compile(htmlTemplate);
     const htmlContent = template({ items: itemsWithImages });
 
-    const pdfBuffer = await htmlPDF.create(htmlContent);
+    // Launch Puppeteer and generate PDF
+    const browser = await puppeteer.launch({
+      args: ["--no-sandbox", "--disable-setuid-sandbox"], // Required for some environments
+    });
+    const page = await browser.newPage();
+    
+    // Set HTML content and wait for images to load
+    await page.setContent(htmlContent);
+    
+    // Wait for all images to load
+    await page.evaluate(async () => {
+      const imgs = Array.from(document.querySelectorAll('img'));
+      await Promise.all(
+        imgs.map((img) => {
+          if (img.complete) return;
+          return new Promise((resolve, reject) => {
+            img.addEventListener('load', resolve);
+            img.addEventListener('error', () => reject(new Error('Image failed to load')));
+          });
+        })
+      );
+    });
+
+    console.log("PDF generation started...");
+
+    const pdfBuffer = await page.pdf({ format: 'A4' });
+    await browser.close();
 
     return new NextResponse(pdfBuffer, {
       headers: {
