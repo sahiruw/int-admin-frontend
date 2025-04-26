@@ -181,6 +181,15 @@ const Page = () => {
 
     }
 
+
+    const handleThumbnailSheetGeneration = () => {
+        let data = tableData.map(
+            row => row.picture_id
+        );
+        const encodedData = encodeURIComponent(JSON.stringify(data));
+        window.location.href = `/reports/thumbnail-sheet?data=${encodedData}`;
+    }
+
     return (
         <div className="rounded-[10px] bg-white shadow-1 dark:bg-gray-dark dark:shadow-card px-8 pt-4 space-y-4" style={{ height: "85vh", overflowY: "auto" }}>
             {/* {JSON.stringify(tableData[0])} */}
@@ -229,6 +238,18 @@ const Page = () => {
                     Generate Report
                 </button>
 
+                <button
+                    className={cn(
+                        "px-4 py-2 bg-blue-600 text-white font-semibold rounded shadow-sm hover:bg-blue-700 transition-colors duration-200 ml-auto",
+                        {
+                            "cursor-not-allowed opacity-60": !selectedDate,
+                        }
+                    )}
+                    onClick={handleThumbnailSheetGeneration}
+                    disabled={!selectedDate}
+                >
+                    Generate Thumbnail Sheet
+                </button>
 
 
                 <button
