@@ -19,12 +19,13 @@ import LoadingScreen from '@/components/Layouts/LoadingScreen'
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | NextAdmin - Next.js Dashboard Kit",
-    default: "NextAdmin - Next.js Dashboard Kit",
+    template: "%s | Niigata Koi Global Admin",
+    default: "Niigata Koi Global Admin Dashboard",
   },
   description:
-    "Next.js admin dashboard toolkit with 200+ templates, UI components, and integrations for fast dashboard development.",
+    "Admin dashboard for Niigata Koi Global, providing seamless management of inventory, sales, and operations with an intuitive and responsive interface.",
 };
+
 
 export default function RootLayout({ children }: PropsWithChildren) {
   return (
