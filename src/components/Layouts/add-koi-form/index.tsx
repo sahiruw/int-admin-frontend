@@ -8,8 +8,10 @@ import { FilteredTextboxDropdown } from "@/components/FormElements/filteredselec
 import { Picker } from "@/components/FormElements/Dropdown";
 import { Breeder, Customer, KoiInfo, Location, Varity } from "@/types/koi";
 import { toast } from "react-hot-toast";
+import { useLoading } from "@/app/loading-context";
 
 export function AddKoiForm({ koi, onClose, setData }: { koi: KoiInfo; onClose: () => void, setData: (data: KoiInfo[]) => void }) {
+    const { setLoading } = useLoading();
     const [koiOptions, setKoiOptions] = useState<any[]>([]);
     const [breederOptions, setBreederOptions] = useState<any[]>([]);
     const [customerOptions, setCustomerOptions] = useState<any[]>([]);
@@ -54,6 +56,7 @@ export function AddKoiForm({ koi, onClose, setData }: { koi: KoiInfo; onClose: (
     }, []);
 
     const handleSave = async () => {
+        setLoading(true)
         const changed: any = {};
         Object.keys(formData).forEach((key) => {
             if (formData[key] !== (koi as any)[key]) {
@@ -109,6 +112,9 @@ export function AddKoiForm({ koi, onClose, setData }: { koi: KoiInfo; onClose: (
         } catch (err) {
             toast.error("Failed to save");
             console.error("Save failed", err);
+        }
+        finally {
+            setLoading(false)
         }
     };
 
