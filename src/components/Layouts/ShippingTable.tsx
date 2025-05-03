@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { TrashIcon, EditIcon, SaveIcon, RedoIcon, ClearIcon } from "@/assets/icons";
 import {
@@ -44,7 +44,7 @@ export function DataTable({
     { key: "weight_of_box", Header: "KG", type: "number" },
   ];
 
-  
+
   const [data, setData] = useState<KoiInfo[]>(rawData);
 
   useEffect(() => {
@@ -74,6 +74,33 @@ export function DataTable({
     }));
   }
 
+  const totalsByGroup = useMemo(() => {
+    const groupTotals: Record<string, { numerator: number; denominator: number }> = {};
+
+    data.forEach(row => {
+      if (row.grouping && row.weight_of_box && row.box_count && row.pcs) {
+        const group = row.grouping;
+        const weightSum = row.weight_of_box * row.box_count;
+        const pcs = row.pcs;
+
+        if (!groupTotals[group]) {
+          groupTotals[group] = { numerator: 0, denominator: 0 };
+        }
+
+        groupTotals[group].numerator += weightSum;
+        groupTotals[group].denominator += pcs;
+      }
+    });
+
+    const result: Record<string, number> = {};
+    for (const group in groupTotals) {
+      const { numerator, denominator } = groupTotals[group];
+      result[group] = denominator !== 0 ? numerator / denominator : 0;
+    }
+
+    return result;
+  }, [data]);
+
 
   return (
     <div className="overflow-y-auto" style={{ maxHeight: "75vh", overflowY: "auto" }}>
@@ -91,7 +118,7 @@ export function DataTable({
                 {header}
               </TableHead>
             ))}
-            <TableHead className="w-auto" colSpan={5}>
+            <TableHead className="w-auto" colSpan={7}>
               Ship Info
             </TableHead>
           </TableRow>
@@ -103,6 +130,12 @@ export function DataTable({
             ))}
             <TableHead className="w-auto">
               Total KG
+            </TableHead>
+            <TableHead className="w-auto">
+              Grouping
+            </TableHead>
+            <TableHead className="w-auto">
+              S/C Per Koi
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -184,6 +217,23 @@ export function DataTable({
 
                     </div>
                   ) : <></>}
+                </TableCell>
+
+                <TableCell className="text-right">
+                  <input
+                    type="text"
+                    value={row["grouping"] || ""}
+                    onChange={(e) => handleInputChange(row.picture_id, "grouping", e.target.value)}
+                    className="w-full text-right border border-gray-100 rounded-md p-2"
+                  />
+                </TableCell>
+
+                <TableCell className="text-right">
+                  {row.grouping && totalsByGroup[row.grouping] !== undefined && (
+                    <p className="font-medium text-dark dark:text-white">
+                      {totalsByGroup[row.grouping].toFixed(2)}
+                    </p>
+                  )}
                 </TableCell>
 
 
