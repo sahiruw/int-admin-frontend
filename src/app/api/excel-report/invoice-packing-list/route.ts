@@ -1,5 +1,3 @@
-import { InvoiceByDateTableRecord } from "./../../../types/report";
-import { createClient } from "@/utils/supabase/supabase";
 import { getGoogleServices } from "@/utils/google/google";
 
 const TEMPLATE_SHEET_ID = "1h-i9cot1bF3edA19N4AakxgtvI23Ude3tnaMmvjNMv0";
@@ -32,19 +30,22 @@ export async function POST(req: Request) {
       name: `Sheet - ${Date.now()}`,
       parents: [DEST_FOLDER_ID],
     },
-    supportsAllDrives: true
+    supportsAllDrives: true,
   });
 
   const spreadsheetId = copyResponse.data?.id;
   // let spreadsheetId = "1muIYDv5bZ0XMtyxPSsdOXVK8q6OEi5Q7U37d6CG0zP4";
   if (!spreadsheetId) {
     console.error("Failed to copy the template sheet.");
-    return new Response(JSON.stringify({ error: "Failed to copy the template sheet" }), {
-      status: 500,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    return new Response(
+      JSON.stringify({ error: "Failed to copy the template sheet" }),
+      {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
   }
   console.log(`Spreadsheet ID: ${spreadsheetId}`);
 
@@ -108,13 +109,11 @@ export async function POST(req: Request) {
             fields: "userEnteredValue",
             start: {
               sheetId: sheetId,
-              rowIndex: 31,      // Starts at row 33 (zero-based)
-              columnIndex: 0,    // Starts at column A
+              rowIndex: 31, // Starts at row 33 (zero-based)
+              columnIndex: 0, // Starts at column A
             },
           },
         },
-        
-
 
         {
           updateSheetProperties: {
@@ -129,17 +128,29 @@ export async function POST(req: Request) {
     },
   });
 
-  return new Response(JSON.stringify({ message: "ok" , url: `https://docs.google.com/spreadsheets/d/${spreadsheetId}/export?format=xlsx` }), {
-   
+  // Step: Export spreadsheet as XLSX
+  const fileExport = await drive.files.export(
+    {
+      fileId: spreadsheetId,
+      mimeType:
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    },
+    { responseType: "arraybuffer" } // Ensure we get binary data
+  );
+
+  // Convert ArrayBuffer to Buffer
+  const buffer = Buffer.from(fileExport.data);
+
+  // Return response with Excel file blob
+  return new Response(buffer, {
     status: 200,
     headers: {
-      "Content-Type": "application/json",
+      "Content-Type":
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "Content-Disposition": `attachment; filename="KoiData_${Date.now()}.xlsx"`,
     },
-
-    statusText: "OK",
   });
 }
-
 
 function getCellValue(value: any) {
   if (typeof value === "string") {
