@@ -1,3 +1,12 @@
+export type box = {
+  breeder_id: number;
+  size: string;
+  length_cm: number;
+  width_cm: number;
+  thickness_cm: number;
+  breeder: Breeder;
+}
+
 export type Varity = {
   id: number;
   variety: string;

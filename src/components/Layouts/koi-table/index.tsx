@@ -97,8 +97,8 @@ export function KoiInfoTable({ data, setEditingKoiId }: { data: KoiInfo[]; setEd
                 </TableCell>
 
                 {SalesCell(row.sale_price_jpy, row.sale_price_usd)}
-                {SalesCell(row.comm_jpy, row.comm_usd)}
-                {SalesCell(row.total_jpy_sales, row.total_usd_sales)}
+                {SalesCell(row.sale_price_jpy * row.comm, row.sale_price_usd * row.comm)}
+                {SalesCell(row.sale_price_jpy * (1+  row.comm), row.sale_price_usd * (1+  row.comm))}
 
                 <TableCell>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -204,7 +204,8 @@ const SalesCell = (jpy?: number, usd?: number) => {
   return (
     <TableCell>
       <p className="text-green-600 dark:text-green-400 text-sm">
-        {jpy && (<span className="flex items-center gap-1">
+        
+        {jpy > 0 && (<span className="flex items-center gap-1">
           <span
             className="w-3 h-3 rounded-full bg-[#BC002D]"
             aria-label="Red Ball"
@@ -212,7 +213,7 @@ const SalesCell = (jpy?: number, usd?: number) => {
           ¥{jpy?.toLocaleString()}
         </span>)}
 
-        {usd && (<span className="flex items-center gap-1">
+        {usd > 0 && (<span className="flex items-center gap-1">
           <img
             src="https://flagcdn.com/w40/us.png"
             alt="US Flag"

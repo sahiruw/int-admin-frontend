@@ -8,8 +8,10 @@ import { FilteredTextboxDropdown } from "@/components/FormElements/filteredselec
 import { Picker } from "@/components/FormElements/Dropdown";
 import { Breeder, Customer, KoiInfo, Location, Varity } from "@/types/koi";
 import { toast } from "react-hot-toast";
+import { useLoading } from "@/app/loading-context";
 
 export function AddKoiForm({ koi, onClose, setData }: { koi: KoiInfo; onClose: () => void, setData: (data: KoiInfo[]) => void }) {
+    const { setLoading } = useLoading();
     const [koiOptions, setKoiOptions] = useState<any[]>([]);
     const [breederOptions, setBreederOptions] = useState<any[]>([]);
     const [customerOptions, setCustomerOptions] = useState<any[]>([]);
@@ -54,6 +56,7 @@ export function AddKoiForm({ koi, onClose, setData }: { koi: KoiInfo; onClose: (
     }, []);
 
     const handleSave = async () => {
+        setLoading(true)
         const changed: any = {};
         Object.keys(formData).forEach((key) => {
             if (formData[key] !== (koi as any)[key]) {
@@ -63,8 +66,7 @@ export function AddKoiForm({ koi, onClose, setData }: { koi: KoiInfo; onClose: (
 
         if (Object.keys(changed).length === 0) {
             onClose();
-            toast.error("No changes made");
-            return;
+            throw new Error("No changes made");
         }
 
         try {
@@ -110,6 +112,9 @@ export function AddKoiForm({ koi, onClose, setData }: { koi: KoiInfo; onClose: (
             toast.error("Failed to save");
             console.error("Save failed", err);
         }
+        finally {
+            setLoading(false)
+        }
     };
 
 
@@ -122,6 +127,16 @@ export function AddKoiForm({ koi, onClose, setData }: { koi: KoiInfo; onClose: (
             setSaleCurrency("USD");
         }
     }, [formData.sale_price_jpy, formData.sale_price_usd]);
+
+    const handleCurrencyChange = (value: string) => {
+        setSaleCurrency(value);
+        if (value === "JPY") {
+            setFormData({ ...formData, sale_price_jpy: formData.sale_price_usd, sale_price_usd: null });
+        } else {
+            setFormData({ ...formData, sale_price_usd: formData.sale_price_jpy, sale_price_jpy: null });
+        }
+    }
+
     const handleSalePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         if (saleCurrency === "JPY") {
@@ -232,7 +247,7 @@ export function AddKoiForm({ koi, onClose, setData }: { koi: KoiInfo; onClose: (
                         <Picker
                             items={["USD", "JPY"]}
                             value={saleCurrency}
-                            setValue={setSaleCurrency}
+                            setValue={handleCurrencyChange}
                             placeholder="Select Currency"
                         />
                     </div>
