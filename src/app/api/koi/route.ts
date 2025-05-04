@@ -9,18 +9,18 @@ export async function GET(request: Request) {
   const breederId = searchParams.get("breeder_id");
   const shipped = searchParams.get("shipped");
 
-  const cacheKey = `koi_${breederId || "all"}_${shipped ?? "any"}`;
-  const cachedData = getCache(cacheKey);
+  // const cacheKey = `koi_${breederId || "all"}_${shipped ?? "any"}`;
+  // const cachedData = getCache(cacheKey);
 
-  if (cachedData) {
-    return new Response(JSON.stringify(cachedData), {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        "X-Cache": "HIT",
-      },
-    });
-  }
+  // if (cachedData) {
+  //   return new Response(JSON.stringify(cachedData), {
+  //     status: 200,
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //       "X-Cache": "HIT",
+  //     },
+  //   });
+  // }
 
   let allData: any[] = [];
   const limit = 1000;
@@ -56,7 +56,7 @@ export async function GET(request: Request) {
     offset += limit;
   }
 
-  setCache(cacheKey, allData, 3000); // cache for 5 minutes
+  // setCache(cacheKey, allData, 3000); // cache for 5 minutes
 
   return new Response(JSON.stringify(allData), {
     status: 200,
