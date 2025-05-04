@@ -17,7 +17,7 @@ type PropsType = {
 export function FilteredTextboxDropdown({
   items,
   label,
-  placeholder,
+  placeholder = "Select...",
   prefixIcon,
   className,
   onChange,
@@ -27,18 +27,30 @@ export function FilteredTextboxDropdown({
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
 
-  const filteredItems = shouldShowSearch ? items.filter((item) =>
-    item.label.toLowerCase().includes(search.toLowerCase())
-  ) : items;
+  const filteredItems = shouldShowSearch
+    ? items.filter((item) =>
+        item.label.toLowerCase().includes(search.toLowerCase())
+      )
+    : items;
 
   return (
-    <div className={cn("space-y-3 min-w-60 relative", className)}>
-      {label && (<label htmlFor={id} className="block text-body-sm font-medium text-dark dark:text-white">
-        {label}
-      </label>)}
-      <div className="relative">
-        {prefixIcon && <div className="absolute left-4 top-1/2 -translate-y-1/2">{prefixIcon}</div>}
+    <div className={cn("relative", className)}>
+      {label && (
+        <label
+          htmlFor={id}
+          className="mb-1 block text-sm font-medium text-dark-5 dark:text-white"
+        >
+          {label}
+        </label>
+      )}
 
+      <div
+        className={cn(
+          "flex items-center justify-between gap-x-1 rounded-md border border-[#E8E8E8] bg-white px-3 py-2 text-sm font-medium text-dark-5 outline-none ring-offset-white dark:border-dark-3 dark:bg-dark-2 dark:text-white",
+          isOpen && "ring-1 ring-primary"
+        )}
+      >
+        {prefixIcon && <div className="mr-2">{prefixIcon}</div>}
         <input
           id={id}
           type="text"
@@ -46,32 +58,43 @@ export function FilteredTextboxDropdown({
           onChange={(e) => {
             setSearch(e.target.value);
             setIsOpen(true);
-            if (onChange) onChange(e.target.value);
+            onChange?.(e.target.value);
           }}
-          onFocus={() => { setSearch(""); setIsOpen(true) }}
+          onFocus={() => {
+            setSearch("");
+            setIsOpen(true);
+          }}
           onBlur={() => setTimeout(() => setIsOpen(false), 200)}
           placeholder={placeholder}
           className={cn(
-            "w-full rounded-lg border border-stroke bg-transparent px-5.5 py-2 outline-none transition focus:border-primary active:border-primary dark:border-dark-3 dark:bg-dark-2 dark:focus:border-primary",
-            prefixIcon && "pl-11.5"
+            "w-full bg-transparent text-sm outline-none placeholder:text-neutral-500 dark:placeholder:text-neutral-400",
+            prefixIcon && "pl-2"
           )}
         />
-
-        <ChevronUpIcon className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 rotate-180" />
+        <ChevronUpIcon
+          className={cn(
+            "size-4 transition-transform",
+            isOpen ? "rotate-0" : "rotate-180"
+          )}
+          onClick={() => setIsOpen((prev) => !prev)}
+        />
       </div>
+
       {isOpen && filteredItems.length > 0 && (
-        <ul className="absolute z-10 mt-1 w-full rounded-lg border border-stroke bg-white dark:bg-dark-2 shadow-md max-h-40 overflow-y-auto">
+        <ul className="absolute z-10 mt-1 w-full max-h-48 overflow-y-auto rounded-lg border border-[#E8E8E8] bg-white p-1 font-medium text-dark-5 shadow-md dark:border-dark-3 dark:bg-dark-2 dark:text-current">
           {filteredItems.map((item) => (
-            <li
-              key={item.value}
-              onMouseDown={() => {
-                setSearch(item.label);
-                setIsOpen(false);
-                if (onChange) onChange(item.value);
-              }}
-              className="cursor-pointer px-5.5 py-2 hover:bg-gray-200 dark:hover:bg-dark-3"
-            >
-              {item.label}
+            <li key={item.value}>
+              <button
+                type="button"
+                className="flex w-full select-none items-center truncate rounded-md px-3 py-2 text-sm capitalize outline-none hover:bg-[#F9FAFB] hover:text-dark-3 dark:hover:bg-[#FFFFFF1A] dark:hover:text-white"
+                onMouseDown={() => {
+                  setSearch(item.label);
+                  setIsOpen(false);
+                  onChange?.(item.value);
+                }}
+              >
+                {item.label}
+              </button>
             </li>
           ))}
         </ul>
