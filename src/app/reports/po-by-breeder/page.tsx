@@ -218,7 +218,6 @@ const page = () => {
   return (
     <div className="rounded-[10px] bg-white shadow-1 dark:bg-gray-dark dark:shadow-card px-8 pt-4 space-y-4" style={{ height: "83vh", overflowY: "auto" }}>
       <div className="flex items-end justify-between w-full gap-4">
-        {/* Left section: dropdowns + Submit */}
         <div className="flex items-end gap-4">
           <FilteredTextboxDropdown
             placeholder={breederOptions.find((item) => item.value === selectedBreeder)?.label}
@@ -244,7 +243,6 @@ const page = () => {
           </button>
         </div>
 
-        {/* Right section: Other buttons */}
         <div className="flex items-end gap-4">
           <button
             className={cn(
