@@ -16,8 +16,6 @@ import { ConfirmationDialog } from "./ConfirmationDialog";
 import { ConfirmationDialogProps } from "@/types/ui";
 import { KoiInfo, ShippingData } from "@/types/koi";
 
-
-
 type DataTableProps = {
   rawData: KoiInfo[];
   shippingData: Record<string, ShippingData>;
@@ -48,12 +46,14 @@ export function DataTable({
   const [data, setData] = useState<KoiInfo[]>(rawData);
 
   useEffect(() => {
-    setData(rawData);
-  }, [rawData]);
+    setData(rawData)
+  }
+    , [rawData]);
+
 
   const handleInputChange = (picture_id: string, field: string, value: string | number): void => {
     setData((prev) => {
-      return prev.map((item) => {
+      const updated = prev.map((item) => {
         if (item.picture_id === picture_id) {
           return {
             ...item,
@@ -62,9 +62,9 @@ export function DataTable({
         }
         return item;
       });
+      return updated
     });
-
-
+  
     setShippingData((prev) => ({
       ...prev,
       [picture_id]: {
@@ -72,7 +72,8 @@ export function DataTable({
         [field]: value,
       },
     }));
-  }
+  };
+  
 
   const totalsByGroup = useMemo(() => {
     const groupTotals: Record<string, { numerator: number; denominator: number }> = {};
@@ -103,7 +104,7 @@ export function DataTable({
 
 
   return (
-    <div className="overflow-y-auto" style={{ maxHeight: "75vh", overflowY: "auto" }}>
+    <div className="overflow-y-auto" style={{ maxHeight: "72vh", overflowY: "auto" }}>
 
       <Table className="w-full table-fixed">
 
@@ -232,8 +233,10 @@ export function DataTable({
                   {row.grouping && totalsByGroup[row.grouping] !== undefined && (
                     <p className="font-medium text-dark dark:text-white">
                       {totalsByGroup[row.grouping].toFixed(2)}
+
                     </p>
                   )}
+                  {row.container_number}
                 </TableCell>
 
 
