@@ -28,7 +28,7 @@ const Page = () => {
                 const res = await fetch('/api/koi', { next: { revalidate: 300 } });
                 const rawData: KoiSaleRecord[] = await res.json();
                 const filtered = rawData.filter((record) => record.date && !record.shipped);
-                setData(filtered);
+                setData(groupRecords(filtered));
             } catch (error) {
                 console.error("Failed to fetch koi sales data:", error);
                 toast.error("Failed to fetch koi sales data");
@@ -45,8 +45,9 @@ const Page = () => {
     useEffect(() => {
         if (data.length > 0) {
             console.log("Data changed:", selectedDate, selectedBreeder);
-            const grouped = groupRecords(data, selectedDate, selectedBreeder);
-            console.log("Grouped data:", grouped.length);
+            let grouped = data.filter(record => (record.date === selectedDate || selectedDate === "") && (record.breeder_name === selectedBreeder || selectedBreeder === ""));
+            // grouped = groupRecords(grouped );
+            // console.log("Grouped data:", grouped.length);
             setTableData(grouped);
         }
     }, [data, selectedDate, selectedBreeder]);
@@ -149,20 +150,31 @@ const Page = () => {
                 )
             };
 
-            fetch("/api/excel-report", {
+            fetch("/api/excel-report/invoice-packing-list", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({ payload: data }),
             })
-                .then((res) => res.json())
-                .then((data) => {
-                    console.log("Success:", data);
-                    toast.success("Report generated successfully");
+                .then(async (res) => {
+                    if (!res.ok) throw new Error("Failed to generate report");
 
-                    let url = data.url;
-                    window.open(url, "_blank");
+                    const blob = await res.blob();
+                    const url = window.URL.createObjectURL(blob);
+
+                    // Create a temporary link to download the file
+                    const link = document.createElement("a");
+                    link.href = url;
+                    link.download = `Koi_Report_${Date.now()}.xlsx`;
+                    document.body.appendChild(link);
+                    link.click();
+
+                    // Cleanup
+                    link.remove();
+                    window.URL.revokeObjectURL(url);
+
+                    toast.success("Report downloaded successfully");
                 })
                 .catch((error) => {
                     console.error("Error:", error);
@@ -171,6 +183,7 @@ const Page = () => {
                 .finally(() => {
                     setLoading(false);
                 });
+
         }
 
         catch (error) {
@@ -185,45 +198,45 @@ const Page = () => {
     const handleThumbnailSheetGeneration = async () => {
         setLoading(true);
         try {
-          const data = tableData.map(row => ({
-            picture_id: row.picture_id,
-            variety: row.variety_name,
-            size: row.size_cm,
-          }));
-      
-          const response = await fetch('/api/thumbnails/pdf', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ items: data }),
-          });
-      
-          if (!response.ok) {
-            throw new Error('Failed to generate PDF');
-          }
-      
-          const blob = await response.blob();
-          const url = window.URL.createObjectURL(blob);
-      
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = 'thumbnail-sheet.pdf'; // Name of the downloaded file
-          document.body.appendChild(link);
-          link.click();
-          link.remove();
-      
-          // Cleanup the blob URL after download
-          window.URL.revokeObjectURL(url);
-      
+            const data = tableData.map(row => ({
+                picture_id: row.picture_id,
+                variety: row.variety_name,
+                size: row.size_cm,
+            }));
+
+            const response = await fetch('/api/thumbnails/pdf', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ items: data }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to generate PDF');
+            }
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'thumbnail-sheet.pdf'; // Name of the downloaded file
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+
+            // Cleanup the blob URL after download
+            window.URL.revokeObjectURL(url);
+
         } catch (error) {
-          console.error('Error generating or downloading PDF:', error);
+            console.error('Error generating or downloading PDF:', error);
         }
         finally {
-          setLoading(false);
+            setLoading(false);
         }
-      };
-      
+    };
+
 
     return (
         <div className="rounded-[10px] bg-white shadow-1 dark:bg-gray-dark dark:shadow-card px-8 pt-4 space-y-4" style={{ height: "85vh", overflowY: "auto" }}>
@@ -237,67 +250,79 @@ const Page = () => {
                 variant='destructive'
             />
 
-            <div className="flex items-center gap-4">
-                <label className="font-medium text-gray-600 dark:text-gray-300">Ship Date:</label>
-                <Picker value={selectedDate} setValue={setSelectedDate} items={uniqueDates} />
-
-                <label className="font-medium text-gray-600 dark:text-gray-300">Breeder:</label>
-                <Picker
-                    value={selectedBreeder}
-                    setValue={setSelectedBreeder}
-                    items={uniqueBreeders}
-                    disabled={!selectedDate}
-                />
-
-                {/* // clear breeder filter button */}
-                <button
-                    className="px-2 py-0.5 text-red-500 border-red-500 border-2 rounded hover:opacity-80 hover:bg-red-500 hover:text-white"
-                    onClick={() => {
-                        setSelectedBreeder("");
-                        setSelectedDate("");
-                    }}
-                >
-                    Clear Filters
-                </button>
-
-                <button
-                    className={cn(
-                        "px-4 py-2 bg-yellow-600 text-white font-semibold rounded shadow-sm hover:bg-yellow-700 transition-colors duration-200 ml-auto",
-                        {
-                            "cursor-not-allowed opacity-60": !selectedDate,
-                        }
-                    )}
-                    onClick={handleGenerateReport}
-                    disabled={!selectedDate}
-                >
-                    Generate Report
-                </button>
-
-                <button
-                    className={cn(
-                        "px-4 py-2 bg-blue-600 text-white font-semibold rounded shadow-sm hover:bg-blue-700 transition-colors duration-200 ml-auto",
-                        {
-                            "cursor-not-allowed opacity-60": !selectedDate,
-                        }
-                    )}
-                    onClick={handleThumbnailSheetGeneration}
-                    disabled={!selectedDate}
-                >
-                    Generate Thumbnail Sheet
-                </button>
+            <div className="flex items-end justify-between w-full gap-4">
+                <div className="flex items-end gap-4">
 
 
-                <button
-                    className={cn("ml-auto px-4 py-2 bg-primary text-white rounded hover:opacity-80", {
-                        "cursor-not-allowed opacity-80": selectedRows.length === 0
-                    })}
-                    onClick={() => {
-                        setIsConfirmationDialogOpen(true);
-                    }}
-                    disabled={selectedRows.length === 0}
-                >
-                    Mark as Shipped
-                </button>
+                    <label className="font-medium text-gray-600 dark:text-gray-300">Ship Date:</label>
+                    <Picker value={selectedDate} setValue={setSelectedDate} items={uniqueDates} width='w-32' />
+
+                    <label className="font-medium text-gray-600 dark:text-gray-300">Breeder:</label>
+                    <Picker
+                        value={selectedBreeder}
+                        setValue={setSelectedBreeder}
+                        items={uniqueBreeders}
+                        disabled={!selectedDate}
+                        width='w-48'
+                    />
+
+                    {/* // clear breeder filter button */}
+                    <button
+                        className="px-2 py-0.5 text-red-500 border-red-500 border-2 rounded hover:opacity-80 hover:bg-red-500 hover:text-white"
+                        onClick={() => {
+                            setSelectedBreeder("");
+                            setSelectedDate("");
+                        }}
+                    >
+                        Clear Filters
+                    </button>
+
+
+
+
+                    <button
+                        className={cn("px-2 py-0.5 text-primary border-primary border-2 rounded hover:opacity-80 hover:bg-primary hover:text-white", {
+                            "cursor-not-allowed opacity-80": selectedRows.length === 0
+                        })}
+                        onClick={() => {
+                            setIsConfirmationDialogOpen(true);
+                        }}
+                        disabled={selectedRows.length === 0}
+                    >
+                        Mark as Shipped
+                    </button>
+
+
+
+                </div>
+
+                <div className="flex items-end gap-4">
+                    <button
+                        className={cn(
+                            "px-4 py-2 bg-yellow-600 text-white font-semibold rounded shadow-sm hover:bg-yellow-700 transition-colors duration-200",
+                            {
+                                "cursor-not-allowed opacity-60": !selectedDate,
+                            }
+                        )}
+                        onClick={handleGenerateReport}
+                        disabled={!selectedDate}
+                    >
+                        Generate Report
+                    </button>
+
+                    <button
+                        className={cn(
+                            "px-4 py-2 bg-blue-600 text-white font-semibold rounded shadow-sm hover:bg-blue-700 transition-colors duration-200",
+                            {
+                                "cursor-not-allowed opacity-60": !selectedDate,
+                            }
+                        )}
+                        onClick={handleThumbnailSheetGeneration}
+                        disabled={!selectedDate}
+                    >
+                        Thumbnail Sheet
+                    </button>
+                </div>
             </div>
 
             <DataTable
@@ -332,43 +357,64 @@ export default Page;
 
 
 
-function groupRecords(records: KoiSaleRecord[], date: string, breeder: string) {
-    // Filter by date and breeder
-    let groupedRecords = records.filter(record => (record.date === date || date === "") && (record.breeder_name === breeder || breeder === ""));
+export function groupRecords(records: KoiSaleRecord[]) {
+    // Group records by date
+    const recordsByDate: { [date: string]: KoiSaleRecord[] } = {};
 
-    // Sort by breeder name then grouping
-    groupedRecords = groupedRecords.sort((a, b) => {
-        if (a.breeder_name < b.breeder_name) return -1;
-        if (a.breeder_name > b.breeder_name) return 1;
-        return (a.grouping ?? "").localeCompare(b.grouping ?? "");
-    });
-
-    let containerIndex = 1;
-
-    const updatedRecords = groupedRecords.map(record => {
-        if (record.box_count) {
-            const start = containerIndex;
-            const end = containerIndex + record.box_count - 1;
-
-            const container_number =
-                record.box_count === 1
-                    ? `C/NO. ${start}`
-                    : `C/NO. ${start}-${end}`;
-
-            containerIndex = end + 1;
-
-            return {
-                ...record,
-                container_number,
-            };
+    for (const record of records) {
+        const date = record.date || 'unknown';
+        if (!recordsByDate[date]) {
+            recordsByDate[date] = [];
         }
-        else {
-            return {
-                ...record,
-                container_number: ""
+        recordsByDate[date].push(record);
+    }
+
+    // Process each date group individually
+    const allUpdatedRecords: KoiSaleRecord[] = [];
+
+    for (const date of Object.keys(recordsByDate).sort()) {
+        let containerIndex = 1;
+
+        const grouped = recordsByDate[date].sort((a, b) => {
+            if (a.breeder_name < b.breeder_name) return -1;
+            if (a.breeder_name > b.breeder_name) return 1;
+
+            const groupA = a.grouping ?? "";
+            const groupB = b.grouping ?? "";
+            const groupCompare = groupA.localeCompare(groupB);
+            if (groupCompare !== 0) return groupCompare;
+
+            // Tiebreaker: picture_id comparison
+            return a.picture_id.localeCompare(b.picture_id);
+        });
+
+
+        const updatedGroup = grouped.map((record) => {
+            if (record.box_count) {
+                const start = containerIndex;
+                const end = containerIndex + parseInt(record.box_count) - 1;
+
+                const container_number =
+                    record.box_count === 1
+                        ? `C/NO. ${start}`
+                        : `C/NO. ${start}-${end}`;
+
+                containerIndex = end + 1;
+
+                return {
+                    ...record,
+                    container_number,
+                };
+            } else {
+                return {
+                    ...record,
+                    container_number: "",
+                };
             }
-        }
-    });
+        });
 
-    return updatedRecords;
+        allUpdatedRecords.push(...updatedGroup);
+    }
+
+    return allUpdatedRecords;
 }
