@@ -236,7 +236,6 @@ export function DataTable({
 
                     </p>
                   )}
-                  {row.container_number}
                 </TableCell>
 
 
