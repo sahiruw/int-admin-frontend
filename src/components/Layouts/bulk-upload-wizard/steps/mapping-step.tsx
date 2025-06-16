@@ -12,6 +12,8 @@ const FIELD_OPTIONS = [
   { label: 'Sex', value: 'sex' },
   { label: 'Cost (JPY)', value: 'jpy_cost' },
   { label : "No Of Pcs", value: "pcs"},
+    { label: "Sold To", value: "sold_to" },
+  { label: "Ship To", value: "ship_to" },
   { label: 'Ignore', value: 'ignore' },
 ];
 

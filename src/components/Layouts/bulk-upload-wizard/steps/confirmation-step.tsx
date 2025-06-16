@@ -34,6 +34,8 @@ export function ConfirmationStep({
                 }, {} as Record<string, any>);
             });
 
+            console.log('Payload to upload:', payload);
+
             const response = await fetch('/api/koi', {
                 method: 'POST',
                 body: JSON.stringify({ payload }),
