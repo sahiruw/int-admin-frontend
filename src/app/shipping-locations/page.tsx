@@ -1,118 +1,51 @@
 'use client'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { DataTable } from '@/components/Layouts/tables/editable'
 import { toast } from 'react-hot-toast'
-import { useLoading } from '../loading-context';
+import { useAppDispatch, useAppSelector } from '@/store';
+import { fetchShippingLocations, addShippingLocation, updateShippingLocation, deleteShippingLocation } from '@/store/slices/shippingLocationsSlice';
 
 export default function Page() {
-    const { setLoading } = useLoading();
-    const [shippingLocations, setShippingLocations] = useState([    ])
+    const dispatch = useAppDispatch();
+    const { locations, isLoading } = useAppSelector((state: any) => state.shippingLocations);
 
     useEffect(() => {
-        setLoading(true);
-        // Fetch shippingLocations
-        fetch('/api/shipping-locations', { next: { revalidate: 300 } })
-            .then((response) => response.json())
-            .then((data) => {
-                setShippingLocations(data);
-                toast.success('ShippingLocations fetched successfully');
-            })
-            .catch((error) => {
-                console.error('Error fetching data:', error);
-                toast.error('Failed to fetch shippingLocations');
-            })
-            .finally(() => {
-                setLoading(false);
-            });
-    }, []);
+        dispatch(fetchShippingLocations());
+    }, [dispatch]);
 
-    const handleEdit = (id, data) => {
-        // Update the breeder
-        fetch('/api/shipping-locations', {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ payload: data }),
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error('Failed to update breeder');
-                }
-                return response.json();
-            })
-            .then((result) => {
-                toast.success('Breeder updated successfully');
-                setShippingLocations((prevShippingLocations) =>
-                    prevShippingLocations.map((breeder) =>
-                        breeder.id === id ? { ...breeder, ...data } : breeder
-                    )
-                );
-            })
-            .catch((error) => {
-                console.error('Error updating breeder:', error);
-                toast.error('Failed to update breeder');
-            });
+    const handleEdit = async (id: any, data: any) => {
+        try {
+            await dispatch(updateShippingLocation({ id, data })).unwrap();
+            toast.success('Shipping location updated successfully');
+        } catch (error) {
+            console.error('Error updating shipping location:', error);
+            toast.error('Failed to update shipping location');
+        }
     }
 
-    const handleDelete = (id) => {
-        // Delete the breeder
-        fetch('/api/shipping-locations', {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ id }),
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error('Failed to delete breeder');
-                }
-                return response.json();
-            })
-            .then((result) => {
-                toast.success('Breeder deleted successfully');
-                setShippingLocations((prevShippingLocations) =>
-                    prevShippingLocations.filter((breeder) => breeder.id !== id)
-                );
-            })
-            .catch((error) => {
-                console.error('Error deleting breeder:', error);
-                toast.error('Failed to delete breeder');
-            });
+    const handleDelete = async (id: any) => {
+        try {
+            await dispatch(deleteShippingLocation(id)).unwrap();
+            toast.success('Shipping location deleted successfully');
+        } catch (error) {
+            console.error('Error deleting shipping location:', error);
+            toast.error('Failed to delete shipping location');
+        }
     }
 
-    const handleAdd = (data) => {
-        // Find the next available ID
-        const nextId = Math.max(...shippingLocations.map((breeder) => breeder.id)) + 1;
-        data.id = nextId;
-
-        fetch('/api/shipping-locations', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ payload: data }),
-        })
-            .then((response) => {
-                if (!response.ok) {
-                    throw new Error('Failed to add breeder');
-                }
-                return response.json();
-            })
-            .then((result) => {
-                toast.success('Breeder added successfully');
-                setShippingLocations((prevShippingLocations) => [...prevShippingLocations, { ...data, id: nextId }]);
-            })
-            .catch((error) => {
-                console.error('Error adding breeder:', error);
-                toast.error('Failed to add breeder');
-            });
+    const handleAdd = async (data: any) => {
+        try {
+            await dispatch(addShippingLocation(data)).unwrap();
+            toast.success('Shipping location added successfully');
+        } catch (error) {
+            console.error('Error adding shipping location:', error);
+            toast.error('Failed to add shipping location');
+        }
     }
 
     return (
         <div className="rounded-[10px] bg-white shadow-1 dark:bg-gray-dark dark:shadow-card p-8" style={{ height: '80vh', overflow: 'auto' }}>
-            <DataTable data={shippingLocations} editData={setShippingLocations} onEdit={handleEdit} onDelete={handleDelete} onAdd={handleAdd} />
+            <DataTable data={locations} editData={() => {}} onEdit={handleEdit} onDelete={handleDelete} onAdd={handleAdd} />
         </div>
     )
 }

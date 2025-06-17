@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@reduxjs/toolkit": "^2.8.2",
     "@supabase/ssr": "^0.6.1",
     "apexcharts": "^4.5.0",
     "class-variance-authority": "^0.7.1",
@@ -30,6 +31,7 @@
     "react-dom": "^18.3.1",
     "react-hot-toast": "^2.5.2",
     "react-quill": "^2.0.0",
+    "react-redux": "^9.2.0",
     "react-select": "^5.10.0",
     "react-table": "^7.8.0",
     "tailwind-merge": "^2.6.0"

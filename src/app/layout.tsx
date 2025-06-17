@@ -13,7 +13,6 @@ import type { PropsWithChildren } from "react";
 import { Providers } from "./providers";
 import { Toaster } from "react-hot-toast";
 
-import { LoadingProvider } from './loading-context'
 import LoadingScreen from '@/components/Layouts/LoadingScreen'
 
 
@@ -29,11 +28,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: PropsWithChildren) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body>
+    <html lang="en" suppressHydrationWarning>      <body>
         <Providers>
           <NextTopLoader showSpinner={false} />
-          <LoadingProvider>
           <LoadingScreen />
           <div className="flex min-h-screen">
             <Sidebar />
@@ -46,7 +43,6 @@ export default function RootLayout({ children }: PropsWithChildren) {
               </main>
             </div>
           </div>
-          </LoadingProvider>
         </Providers>
       </body>
     </html>

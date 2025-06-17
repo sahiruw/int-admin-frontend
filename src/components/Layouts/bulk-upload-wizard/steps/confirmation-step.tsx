@@ -1,6 +1,8 @@
 // components/Layouts/steps/confirmation-step.tsx
 'use client';
 import { useState } from 'react';
+import { useAppDispatch } from '@/store';
+import { addKoi } from '@/store/slices/koiSlice';
 
 export function ConfirmationStep({
     data,
@@ -15,6 +17,7 @@ export function ConfirmationStep({
     onBack: () => void;
     onComplete: () => void;
 }) {
+    const dispatch = useAppDispatch();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [uploadResult, setUploadResult] = useState<{
         success: boolean;
@@ -36,33 +39,21 @@ export function ConfirmationStep({
 
             console.log('Payload to upload:', payload);
 
-            const response = await fetch('/api/koi', {
-                method: 'POST',
-                body: JSON.stringify({ payload }),
-                headers: { 'Content-Type': 'application/json' }
+            // Use Redux action to add multiple koi
+            const promises = payload.map(koiData => dispatch(addKoi(koiData)).unwrap());
+            await Promise.all(promises);
+
+            setUploadResult({
+                success: true,
+                message: `Successfully uploaded ${selectedRows.length} koi records`
             });
-            const result = await response.json();
-
-            if (result.error) {
-                setUploadResult({
-                    success: false,
-                    message: result.message,
-                    details: result.error
-                });
-            }
-            else {
-                setUploadResult({
-                    success: true,
-                    message: `Successfully uploaded ${selectedRows.length} koi records`
-                });
-                onComplete();
-            }
-
+            onComplete();
 
         } catch (error) {
             setUploadResult({
                 success: false,
-                message: 'Upload failed. Please try again.'
+                message: 'Upload failed. Please try again.',
+                details: error instanceof Error ? error.message : 'Unknown error'
             });
         } finally {
             setIsSubmitting(false);

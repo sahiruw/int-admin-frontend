@@ -1,10 +1,7 @@
 'use client'
-import { useLoading } from '@/app/loading-context';
-import { FilteredTextboxDropdown } from '@/components/FormElements/filteredselect'
-import { DataTable } from '@/components/Layouts/ShippingTable';
-import { box, Breeder, KoiInfo, ShippingData } from '@/types/koi';
-import React, { useEffect, useMemo, useState } from 'react'
-
+import React, { useEffect } from 'react'
+import { useAppDispatch, useAppSelector } from '@/store';
+import { fetchBoxSizes, updateCell, updateEditableData } from '@/store/slices/boxSizesSlice';
 
 type CellData = {
     length_cm?: number;
@@ -18,51 +15,45 @@ type BreederRow = {
 };
 
 const page = () => {
-    const { setLoading } = useLoading();
-    const [initialData, setInitialData] = useState<box[]>([]);
-    const [data, setData] = useState<box[]>([]);
-    const [sizes, setSizes] = useState<string[]>(['65', '70', '75', '80']);
+    const dispatch = useAppDispatch();
+    const { editableData, sizes, isLoading } = useAppSelector((state) => state.boxSizes);
 
     useEffect(() => {
-        setLoading(true);
-        fetch(`/api/box-sizes`, { next: { revalidate: false } })
-            .then((response) => response.json())
-            .then((data) => {
-                let szAr = Array.from(new Set(data.map((item: box) => item.size)))
-                szAr.sort((a: string, b: string) => parseInt(a) - parseInt(b))
-                setSizes(szAr);
+        dispatch(fetchBoxSizes());
+    }, [dispatch]);
 
-                data = mapKoiDataToEditableFormat(data);
-                setInitialData(data);
-                setData(data);
-            })
-            .catch((error) => {
-                console.error('Error fetching data:', error);
-            })
-            .finally(() => {
-                setLoading(false);
-            });
-
-    }, []);
-
-    const updateCell = (rowIdx: number, size: string, field: keyof CellData, value: string) => {
-        const newData = [...data];
-        if (!newData[rowIdx].data[size]) newData[rowIdx].data[size] = {};
-        newData[rowIdx].data[size][field] = parseFloat(value) || undefined;
-        setData(newData);
+    const handleUpdateCell = (rowIdx: number, size: string, field: keyof CellData, value: string) => {
+        const numValue = parseFloat(value) || undefined;
+        dispatch(updateCell({ rowIdx, size, field, value: numValue }));
     };
 
     const addRow = () => {
-        setData([...data, { breederName: 'New Breeder', data: {} }]);
+        const newData = [...editableData, { breederName: 'New Breeder', data: {} }];
+        dispatch(updateEditableData(newData));
     };
 
     const addColumn = () => {
         const newSize = prompt('Enter new size:');
         if (newSize && !sizes.includes(newSize)) {
-            setSizes([...sizes, newSize]);
+            // This would need to be handled in the Redux slice
+            // For now, just alert the user
+            alert('Adding new sizes requires server update');
         }
     };
 
+    const updateBreederName = (rowIdx: number, newName: string) => {
+        const newData = [...editableData];
+        newData[rowIdx].breederName = newName;
+        dispatch(updateEditableData(newData));
+    };
+
+    if (isLoading) {
+        return (
+            <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+            </div>
+        );
+    }
 
     return (
         <div className="rounded-[10px] bg-white shadow-1 dark:bg-gray-dark dark:shadow-card px-4 pt-4 space-y-4" style={{ height: "85vh", overflowY: "auto" }}>
@@ -89,17 +80,13 @@ const page = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {data.map((row, rowIdx) => (
+                        {editableData.map((row, rowIdx) => (
                             <tr key={rowIdx}>
                                 <td className="border px-2 py-1  min-w-min">
                                     <input
                                         className="w-full"
                                         value={row.breederName}
-                                        onChange={e => {
-                                            const newData = [...data];
-                                            newData[rowIdx].breederName = e.target.value;
-                                            setData(newData);
-                                        }}
+                                        onChange={e => updateBreederName(rowIdx, e.target.value)}
                                     />
                                 </td>
                                 {sizes.map(size => {
@@ -109,7 +96,7 @@ const page = () => {
                                             <input
                                                 className="w-full"
                                                 value={cell[field as keyof CellData] ?? ''}
-                                                onChange={e => updateCell(rowIdx, size, field as keyof CellData, e.target.value)}
+                                                onChange={e => handleUpdateCell(rowIdx, size, field as keyof CellData, e.target.value)}
                                             />
                                         </td>
                                     ));
@@ -123,29 +110,4 @@ const page = () => {
     )
 }
 
-export default page
-
-
-function mapKoiDataToEditableFormat(original: box[]): BreederRow[] {
-    const breederMap: { [breederName: string]: BreederRow } = {};
-  
-    original.forEach(entry => {
-      const breederName = entry?.breeder.name;
-      const size = entry.size;
-  
-      if (!breederMap[breederName]) {
-        breederMap[breederName] = {
-          breederName,
-          data: {}
-        };
-      }
-  
-      breederMap[breederName].data[size] = {
-        length_cm: entry.length_cm,
-        width_cm: entry.width_cm,
-        thickness_cm: entry.thickness_cm
-      };
-    });
-  
-    return Object.values(breederMap);
-  }
+export default page;

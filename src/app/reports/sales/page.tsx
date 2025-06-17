@@ -3,29 +3,24 @@ import React, { useEffect, useState } from 'react';
 import DatePickerOne from '@/components/FormElements/DatePicker/DatePickerOne';
 import { FilteredTextboxDropdown } from "@/components/FormElements/filteredselect";
 import { DataTable } from '@/components/Layouts/tables/uneditable';
-import { KoiSaleRecord } from '@/types/koi';
-import { useLoading } from '@/app/loading-context';
-
+import { useAppDispatch, useAppSelector } from '@/store';
+import { fetchSalesReport, setDateRange, setFilteredSales } from '@/store/slices/reportsSlice';
 
 const Page = () => {
-  const { setLoading } = useLoading();
+  const dispatch = useAppDispatch();
+  const { 
+    salesData, 
+    filteredSales, 
+    salesByCustomer, 
+    salesByBreeder, 
+    salesByDivision, 
+    dateRange, 
+    isLoading 
+  } = useAppSelector((state) => state.reports);
+  
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
-  const [dateRange, setDateRange] = useState<string>('');
-  const [filteredSales, setFilteredSales] = useState<any[]>([]);
-
-  const [dataBYCustomer, setDataByCustomer] = useState<any[]>([]);
-  const [dataBYBreeder, setDataByBreeder] = useState<any[]>([]);
-  const [dataBYDivision, setDataByDivision] = useState<any[]>([]);
-
-
-  useEffect(() => {
-    setDataByCustomer(groupAndSum(filteredSales.filter((sale) => sale.customer_name), 'customer_name'));
-    setDataByBreeder(groupAndSum(filteredSales.filter((sale) => sale.breeder_name), 'breeder_name'));
-    setDataByDivision(groupAndSum(filteredSales.filter((sale) => sale.location_name), 'location_name'));
-  }
-    , [filteredSales]);
-
+  const [localDateRange, setLocalDateRange] = useState<string>('');
 
   const dateRangeOptions = [
     { label: 'Last Month', value: 'last-month' },
@@ -44,15 +39,6 @@ const Page = () => {
     'last-year': (today) => new Date(today.getFullYear() - 1, today.getMonth(), today.getDate()),
   };
 
-  const fetchSales = async (start: string, end: string) => {
-    setLoading(true);
-    const query = `/api/koi/sales?start=${start}&end=${end}`;
-    const res = await fetch(query);
-    const data = await res.json();
-    setLoading(false);
-    return data;
-  };
-
   const applyDateRange = async (rangeInText: string) => {
     const today = new Date();
     const startDateFunc = dateRangeMap[rangeInText];
@@ -62,18 +48,29 @@ const Page = () => {
       const end = formatDateToString(today);
       setStartDate(start);
       setEndDate(end);
-      const data = await fetchSales(start, end);
-      setFilteredSales(data);
+      
+      // Dispatch Redux action to fetch sales data
+      dispatch(fetchSalesReport({ startDate: start, endDate: end }));
     }
 
-    setDateRange(rangeInText);
+    setLocalDateRange(rangeInText);
+    dispatch(setDateRange({ startDate: startDate, endDate: endDate }));
+  };
+
+  const handleDateChange = async (newStartDate?: string, newEndDate?: string) => {
+    const start = newStartDate || startDate;
+    const end = newEndDate || endDate;
+    
+    if (start && end) {
+      dispatch(fetchSalesReport({ startDate: start, endDate: end }));
+      setLocalDateRange('');
+    }
   };
 
   useEffect(() => {
-    // 2. Apply default date range: last month
+    // Apply default date range: last month
     applyDateRange('last-month');
   }, []);
-
 
   const precols = [
     { header: '', colspan: 2, color: 'dark:bg-dark-2' },
@@ -84,8 +81,7 @@ const Page = () => {
   return (
     <div className="rounded-[10px] bg-white shadow-1 dark:bg-gray-dark dark:shadow-card px-2" style={{ height: '80vh', overflow: 'auto' }}>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 sticky top-0 bg-white dark:bg-gray-dark z-10 p-6">
-        <div>
-          <FilteredTextboxDropdown
+        <div>          <FilteredTextboxDropdown
             label="Date Range"
             placeholder="Select Date Range"
             items={dateRangeOptions}
@@ -96,13 +92,9 @@ const Page = () => {
 
         <div>
           <DatePickerOne
-            onDateChange={async (date: string) => {
+            onDateChange={(date: string) => {
               setStartDate(date);
-              setDateRange('');
-              if (date && endDate) {
-                const data = await fetchSales(date, endDate);
-                setFilteredSales(data);
-              }
+              handleDateChange(date, endDate);
             }}
             value={startDate}
             label='Start Date'
@@ -111,13 +103,9 @@ const Page = () => {
         </div>
         <div>
           <DatePickerOne
-            onDateChange={async (date: string) => {
+            onDateChange={(date: string) => {
               setEndDate(date);
-              setDateRange('');
-              if (startDate && date) {
-                const data = await fetchSales(startDate, date);
-                setFilteredSales(data);
-              }
+              handleDateChange(startDate, date);
             }}
             value={endDate}
             label='End Date'
@@ -126,117 +114,66 @@ const Page = () => {
         </div>
       </div>
 
-      {/* <div className='overflow-y-scroll'> */}
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+        </div>
+      ) : (
+        <>
+          <DataTable 
+            data={salesByCustomer} 
+            columns={[
+              { key: 'customer_name', header: 'Customer' },
+              { key: 'pcs', header: 'Pcs' },
+              { key: 'jpy_total_sale', header: 'Sales' },
+              { key: 'jpy_total_cost', header: 'Cost' },
+              { key: 'jpy_profit_total', header: 'Profit' },
+              { key: 'usd_total_sale', header: 'Sales' },
+              { key: 'usd_total_cost', header: 'Cost' },
+              { key: 'usd_profit_total', header: 'Profit' },
+            ]} 
+            showTotals={true} 
+            preHeaders={precols}
+            label='Sales by Customer'
+          />
 
-      <DataTable data={dataBYCustomer} columns={[
-        { key: 'customer_name', header: 'Customer' },
-        { key: 'pcs', header: 'Pcs' },
-        { key: 'jpy_total_sale', header: 'Sales' },
-        { key: 'jpy_total_cost', header: 'Cost' },
-        { key: 'jpy_profit_total', header: 'Profit' },
+          <DataTable 
+            data={salesByDivision} 
+            columns={[
+              { key: 'location_name', header: 'Division' },
+              { key: 'pcs', header: 'Pcs' },
+              { key: 'jpy_total_sale', header: 'Sales' },
+              { key: 'jpy_total_cost', header: 'Cost' },
+              { key: 'jpy_profit_total', header: 'Profit' },
+              { key: 'usd_total_sale', header: 'Sales' },
+              { key: 'usd_total_cost', header: 'Cost' },
+              { key: 'usd_profit_total', header: 'Profit' },
+            ]} 
+            showTotals={true} 
+            preHeaders={precols}
+            label='Sales by Division'
+          />
 
-        { key: 'usd_total_sale', header: 'Sales' },
-        { key: 'usd_total_cost', header: 'Cost' },
-        { key: 'usd_profit_total', header: 'Profit' },
-      ]} showTotals={true} preHeaders={precols}
-        label='Sales by Customer'
-      />
-      {/* </div>
-      <div className='overflow-y-scroll'> */}
-
-
-      {/* </div>
-      <div className='overflow-y-scroll'> */}
-      <DataTable data={dataBYDivision} columns={[
-        { key: 'location_name', header: 'Division' },
-        { key: 'pcs', header: 'Pcs' },
-        { key: 'jpy_total_sale', header: 'Sales' },
-        { key: 'jpy_total_cost', header: 'Cost' },
-        { key: 'jpy_profit_total', header: 'Profit' },
-
-        { key: 'usd_total_sale', header: 'Sales' },
-        { key: 'usd_total_cost', header: 'Cost' },
-        { key: 'usd_profit_total', header: 'Profit' },
-      ]} showTotals={true} preHeaders={precols}
-        label='Sales by Division'
-      />
-
-      <DataTable data={dataBYBreeder} columns={[
-        { key: 'breeder_name', header: 'Breeder' },
-        { key: 'pcs', header: 'Pcs' },
-        { key: 'jpy_total_sale', header: 'Sales' },
-        { key: 'jpy_total_cost', header: 'Cost' },
-        { key: 'jpy_profit_total', header: 'Profit' },
-
-        { key: 'usd_total_sale', header: 'Sales' },
-        { key: 'usd_total_cost', header: 'Cost' },
-        { key: 'usd_profit_total', header: 'Profit' },
-      ]} showTotals={true} preHeaders={precols}
-        label='Purchases by Breeder'
-      />
-      {/* </div> */}
-
-
+          <DataTable 
+            data={salesByBreeder} 
+            columns={[
+              { key: 'breeder_name', header: 'Breeder' },
+              { key: 'pcs', header: 'Pcs' },
+              { key: 'jpy_total_sale', header: 'Sales' },
+              { key: 'jpy_total_cost', header: 'Cost' },
+              { key: 'jpy_profit_total', header: 'Profit' },
+              { key: 'usd_total_sale', header: 'Sales' },
+              { key: 'usd_total_cost', header: 'Cost' },
+              { key: 'usd_profit_total', header: 'Profit' },
+            ]} 
+            showTotals={true} 
+            preHeaders={precols}
+            label='Purchases by Breeder'
+          />
+        </>
+      )}
     </div>
   );
 };
 
 export default Page;
-
-
-
-
-type SummaryResult = {
-  [key: string]: string | number | string[];
-  pcs: number;
-  jpy_total_cost: number;
-  jpy_total_sale: number;
-  jpy_profit_total: number;
-  usd_total_sale: number;
-  usd_total_cost: number;
-  usd_profit_total: number;
-
-  picture_ids: string[];
-};
-
-function groupAndSum(data: KoiSaleRecord[], key: keyof KoiSaleRecord): SummaryResult[] {
-  const result: Record<string, SummaryResult> = {};
-
-  data.forEach(item => {
-    const groupKey = String(item[key]);
-
-    if (!result[groupKey]) {
-      result[groupKey] = {
-        [key]: groupKey,
-        pcs: 0,
-        jpy_total_cost: 0,
-        jpy_total_sale: 0,
-        usd_total_sale: 0,
-        jpy_profit_total: 0,
-        usd_total_cost: 0,
-        usd_profit_total: 0,
-        picture_ids: [],
-      };
-    }
-
-    result[groupKey].pcs += item.pcs || 0;
-    result[groupKey].jpy_total_cost += item.jpy_total_cost || 0;
-    result[groupKey].jpy_total_sale += item.jpy_total_sale || 0;
-    result[groupKey].usd_total_sale += item.usd_total_sale || 0;
-    result[groupKey].picture_ids.push(item.picture_id);
-    result[groupKey].usd_total_cost += item.usd_total_cost || 0;
-  });
-
-  // convert all floats to 2 decimal places
-  Object.values(result).forEach((item) => {
-    item.pcs = item.pcs;
-    item.jpy_total_cost = item.jpy_total_sale ? Number(item.jpy_total_cost.toFixed(2)) : 0;
-    item.jpy_total_sale = Number(item.jpy_total_sale.toFixed(2));
-    item.usd_total_sale = Number(item.usd_total_sale.toFixed(2));
-    item.usd_total_cost = item.usd_total_sale ? Number(item.usd_total_cost.toFixed(2)) : 0;
-    item.usd_profit_total = item.usd_total_sale - item.usd_total_cost;
-    item.jpy_profit_total = item.jpy_total_sale - item.jpy_total_cost;
-  });
-
-  return Object.values(result);
-}

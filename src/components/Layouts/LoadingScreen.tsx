@@ -1,9 +1,9 @@
 'use client'
 
-import { useLoading } from "@/app/loading-context";
+import { useAppSelector } from "@/store";
 
 export default function LoadingScreen() {
-    const { isLoading } = useLoading();
+    const isLoading = useAppSelector((state) => state.ui.isLoading);
 
     if (!isLoading) return null;
 

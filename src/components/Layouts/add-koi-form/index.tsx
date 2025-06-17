@@ -8,55 +8,60 @@ import { FilteredTextboxDropdown } from "@/components/FormElements/filteredselec
 import { Picker } from "@/components/FormElements/Dropdown";
 import { Breeder, Customer, KoiInfo, Location, Varity } from "@/types/koi";
 import { toast } from "react-hot-toast";
-import { useLoading } from "@/app/loading-context";
+import { useAppDispatch, useAppSelector } from "@/store";
+import { fetchVarieties } from "@/store/slices/varietiesSlice";
+import { fetchBreeders } from "@/store/slices/breedersSlice";
+import { fetchCustomers } from "@/store/slices/customersSlice";
+import { fetchShippingLocations } from "@/store/slices/shippingLocationsSlice";
+import { updateKoi, addKoi } from "@/store/slices/koiSlice";
 
-export function AddKoiForm({ koi, onClose, setData }: { koi: KoiInfo; onClose: () => void, setData: (data: KoiInfo[]) => void }) {
-    const { setLoading } = useLoading();
-    const [koiOptions, setKoiOptions] = useState<any[]>([]);
-    const [breederOptions, setBreederOptions] = useState<any[]>([]);
-    const [customerOptions, setCustomerOptions] = useState<any[]>([]);
-    const [shippingOptions, setShippingOptions] = useState<any[]>([]);
+export function AddKoiForm({ koi, onClose, setData }: { koi: KoiInfo; onClose: () => void, setData: () => void }) {
+    const dispatch = useAppDispatch();
+    const { varieties } = useAppSelector((state) => state.varieties);
+    const { breeders } = useAppSelector((state) => state.breeders);
+    const { customers } = useAppSelector((state) => state.customers);
+    const { locations } = useAppSelector((state: any) => state.shippingLocations);
+    const { isLoading } = useAppSelector((state) => state.ui);
+    
     const [formData, setFormData] = useState<any>({ ...koi });
+    const [saleCurrency, setSaleCurrency] = useState("JPY");
+
+    // Derived options from Redux state
+    const koiOptions = useMemo(() => 
+        varieties
+            .map((item: Varity) => ({ label: item.variety, value: String(item.id) }))
+            .sort((a, b) => a.label.localeCompare(b.label)), 
+        [varieties]
+    );
+
+    const breederOptions = useMemo(() => 
+        breeders
+            .map((item: Breeder) => ({ label: item.name, value: String(item.id) }))
+            .sort((a, b) => a.label.localeCompare(b.label)), 
+        [breeders]
+    );
+
+    const customerOptions = useMemo(() => 
+        customers
+            .map((item: Customer) => ({ label: item.name, value: String(item.id) }))
+            .sort((a, b) => a.label.localeCompare(b.label)), 
+        [customers]
+    );
+
+    const shippingOptions = useMemo(() => 
+        locations
+            .map((item: Location) => ({ label: item.name, value: String(item.id) }))
+            .sort((a, b) => a.label.localeCompare(b.label)), 
+        [locations]
+    );
 
     useEffect(() => {
-        const fetchOptions = async () => {
-            try {
-                const [koiRes, breederRes, customerRes, shipRes] = await Promise.all([
-                    fetch('/api/varieties', { cache: 'force-cache' }),
-                    fetch('/api/breeders', { cache: 'force-cache' }),
-                    fetch('/api/customers', { cache: 'force-cache' }),
-                    fetch('/api/shipping-locations', { cache: 'force-cache' })
-                ]);
-
-                const [koiData, breederData, customerData, shipData] = await Promise.all([
-                    koiRes.json(), breederRes.json(), customerRes.json(), shipRes.json()
-                ]);
-
-                setKoiOptions(koiData
-                    .map((item: Varity) => ({ label: item.variety, value: item.id }))
-                    .sort((a, b) => a.label.localeCompare(b.label))
-                );
-                setBreederOptions(breederData
-                    .map((item: Breeder) => ({ label: item.name, value: item.id }))
-                    .sort((a, b) => a.label.localeCompare(b.label))
-                );
-                setCustomerOptions(customerData
-                    .map((item: Customer) => ({ label: item.name, value: item.id }))
-                    .sort((a, b) => a.label.localeCompare(b.label))
-                );
-                setShippingOptions(shipData
-                    .map((item: Location) => ({ label: item.name, value: item.id }))
-                    .sort((a, b) => a.label.localeCompare(b.label))
-                );
-            } catch (err) {
-                console.error("Failed to fetch options", err);
-            }
-        };
-        fetchOptions();
-    }, []);
-
-    const handleSave = async () => {
-        setLoading(true)
+        // Fetch data from Redux if not already loaded
+        if (!varieties.length) dispatch(fetchVarieties());
+        if (!breeders.length) dispatch(fetchBreeders());
+        if (!customers.length) dispatch(fetchCustomers());
+        if (!locations.length) dispatch(fetchShippingLocations());
+    }, [dispatch, varieties.length, breeders.length, customers.length, locations.length]);    const handleSave = async () => {
         const changed: any = {};
         Object.keys(formData).forEach((key) => {
             if (formData[key] !== (koi as any)[key]) {
@@ -66,59 +71,21 @@ export function AddKoiForm({ koi, onClose, setData }: { koi: KoiInfo; onClose: (
 
         if (Object.keys(changed).length === 0) {
             onClose();
-            throw new Error("No changes made");
+            toast('No changes made', { icon: 'ℹ️' });
+            return;
         }
 
         try {
-            const payload = [{ picture_id: koi.picture_id, ...changed }];
-            const res = await fetch('/api/koi', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ payload }),
-            });
-
-            if (!res.ok) {
-                toast.error("Failed to save");
-                throw new Error("Failed to save");
-            }
-
-            const updatedKoi = { ...koi, ...changed };
-
-            for (const key in changed) {
-                if (key === "breeder_id") {
-                    const selectedBreeder = breederOptions.find((item) => item.value === changed[key]);
-                    updatedKoi.breeder_name = selectedBreeder ? selectedBreeder.label : "";
-                }
-                if (key === "koi_id") {
-                    const selectedKoi = koiOptions.find((item) => item.value === changed[key]);
-                    updatedKoi.variety_name = selectedKoi ? selectedKoi.label : "";
-                }
-                if (key === "customer_id") {
-                    const selectedCustomer = customerOptions.find((item) => item.value === changed[key]);
-                    updatedKoi.customer_name = selectedCustomer ? selectedCustomer.label : "";
-                }
-                if (key === "ship_to") {
-                    const selectedLocation = shippingOptions.find((item) => item.value === changed[key]);
-                    updatedKoi.location_name = selectedLocation ? selectedLocation.label : "";
-                }
-            }
-
-
-            setData((prev) =>
-                prev.map((k) => (k.picture_id === koi.picture_id ? updatedKoi : k))
-            );
+            await dispatch(updateKoi({ id: koi.koi_id, data: changed })).unwrap();
+            setData(); // Refresh the data
             onClose();
+            toast.success("Koi updated successfully");
         } catch (err) {
             toast.error("Failed to save");
             console.error("Save failed", err);
         }
-        finally {
-            setLoading(false)
-        }
     };
 
-
-    const [saleCurrency, setSaleCurrency] = useState("JPY");
     useEffect(() => {
         if (formData.sale_price_jpy) {
             setSaleCurrency("JPY");
