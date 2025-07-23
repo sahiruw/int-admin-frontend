@@ -4,27 +4,27 @@ import { Select } from "@/components/FormElements/select";
 import { useState, useEffect } from 'react';
 
 const FIELD_OPTIONS = [
-    {label : "Picture ID", value: "picture_id"},
+  { label: "Picture ID", value: "picture_id" },
   { label: 'Koi ID', value: 'koi_id' },
   { label: 'Breeder ID', value: 'breeder_id' },
   { label: 'Age', value: 'age' },
   { label: 'Size (cm)', value: 'size_cm' },
   { label: 'Sex', value: 'sex' },
   { label: 'Cost (JPY)', value: 'jpy_cost' },
-  { label : "No Of Pcs", value: "pcs"},
-    { label: "Sold To", value: "sold_to" },
+  { label: "No Of Pcs", value: "pcs" },
+  { label: "Sold To", value: "sold_to" },
   { label: "Ship To", value: "ship_to" },
   { label: 'Ignore', value: 'ignore' },
 ];
 
 
 function guessField(header: string): string {
-    const clean = header.toLowerCase().replace(/\s|-/g, '');
-    console.log(clean);
-    let match = FIELD_OPTIONS.find(option => clean.includes(option.value.replace(/_/g, '')));
-    match = match ? match : clean.includes('breid') ? FIELD_OPTIONS[2] : undefined;
+  const clean = header.toLowerCase().replace(/\s|-/g, '');
+  console.log(clean);
+  let match = FIELD_OPTIONS.find(option => clean.includes(option.value.replace(/_/g, '')));
+  match = match ? match : clean.includes('breid') ? FIELD_OPTIONS[2] : undefined;
 
-    return match ? match.value : 'ignore';
+  return match ? match.value : 'ignore';
 }
 
 export function MappingStep({
@@ -57,22 +57,26 @@ export function MappingStep({
 
   return (
     <div className="space-y-1">
-        <div className="overflow-x-auto" 
+      <div
+        className="overflow-x-auto"
         style={{ maxHeight: '55vh', overflow: 'auto' }}
-        >
-      {headers.map((header) => (
-        <div key={header} className="flex items-center gap-4">
-          <span className="w-32">{header}</span>
-          <Select
-            items={FIELD_OPTIONS}
-            onChange={(value) =>
-              setMappings((prev) => ({ ...prev, [header]: value }))
-            }
-            value={mappings[header] || 'ignore'}
-          />
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {headers.map((header) => (
+            <div key={header} className="flex items-center gap-4">
+              <span className="w-32">{header}</span>
+              <Select
+                items={FIELD_OPTIONS}
+                onChange={(value) =>
+                  setMappings((prev) => ({ ...prev, [header]: value }))
+                }
+                value={mappings[header] || 'ignore'}
+              />
+            </div>
+          ))}
         </div>
-      ))}
       </div>
+
       <div className="flex justify-between mt-12">
         <button
           type="button"
