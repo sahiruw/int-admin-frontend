@@ -1,6 +1,7 @@
 'use client';
 
 import { Select } from "@/components/FormElements/select";
+import { PermissionGuard } from "@/components/PermissionGuard";
 import { useState, useEffect } from 'react';
 
 const FIELD_OPTIONS = [
@@ -75,9 +76,7 @@ export function MappingStep({
             </div>
           ))}
         </div>
-      </div>
-
-      <div className="flex justify-between mt-12">
+      </div>      <div className="flex justify-between mt-12">
         <button
           type="button"
           onClick={onBack}
@@ -85,13 +84,23 @@ export function MappingStep({
         >
           Back
         </button>
-        <button
-          type="button"
-          onClick={handleSubmit}
-          className="mt-3 px-3 py-2 border rounded-md hover:bg-gray-50 dark:hover:bg-dark-3 disabled:opacity-50 disabled:cursor-not-allowed dark:border-dark-3"
+        <PermissionGuard 
+          resource="koi" 
+          action="bulk_upload"
+          fallback={
+            <div className="text-sm text-gray-500 dark:text-gray-400 mt-3 px-3 py-2">
+              You don't have permission to upload data
+            </div>
+          }
         >
-          Continue
-        </button>
+          <button
+            type="button"
+            onClick={handleSubmit}
+            className="mt-3 px-3 py-2 border rounded-md hover:bg-gray-50 dark:hover:bg-dark-3 disabled:opacity-50 disabled:cursor-not-allowed dark:border-dark-3"
+          >
+            Continue
+          </button>
+        </PermissionGuard>
       </div>
     </div>
   );
