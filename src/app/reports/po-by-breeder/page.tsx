@@ -45,7 +45,6 @@ const page = () => {
       return acc;
     }, [])
       .sort((a, b) => a.label.localeCompare(b.label));
-    setSelectedBreeder(fdata[0]?.value)
     return fdata
   }, [data]);
 
@@ -84,21 +83,23 @@ const page = () => {
       const result = await response.json();
 
       if (response.ok) {
-        toast.success("Data saved successfully");
+  toast.success("Data saved successfully");
 
-        // update the filtered data
-        const updatedData = data.map((item) => {
-          const updatedItem = payload.find((record) => record.picture_id === item.picture_id);
-          if (updatedItem) {
-            return { ...item, ...updatedItem };
-          }
-          return item;
-        });
-        setFilteredData(groupRecords(updatedData));
-        setShippingData({})
-      } else {
-        toast.error("Error saving data");
-      }
+  // ✅ Update full data set
+  const updatedData = data.map((item) => {
+    const updatedItem = payload.find((record) => record.picture_id === item.picture_id);
+    if (updatedItem) {
+      return { ...item, ...updatedItem };
+    }
+    return item;
+  });
+
+  setData(updatedData); // ✅ Triggers the filter useEffect
+  setShippingData({});
+} else {
+  toast.error("Error saving data");
+}
+
     }
     catch (error) {
       console.error('Error:', error);
@@ -160,59 +161,59 @@ const page = () => {
   };
 
   const handleGenerateReport = () => {
-          setLoading(true)
-  
-          try {
-              let data = {
-                  date: selectedDate,
-                  breeder: breederOptions.find((item) => item.value === selectedBreeder)?.label,
-                  breederID: selectedBreeder,
-                  records: filteredData
-              };
-  
-              fetch("/api/excel-report/shipping-request", {
-                  method: "POST",
-                  headers: {
-                      "Content-Type": "application/json",
-                  },
-                  body: JSON.stringify({ payload: data }),
-              })
-                  .then(async (res) => {
-                      if (!res.ok) throw new Error("Failed to generate report");
-              
-                      const blob = await res.blob();
-                      const url = window.URL.createObjectURL(blob);
-              
-                      // Create a temporary link to download the file
-                      const link = document.createElement("a");
-                      link.href = url;
-                      link.download = `Koi_Report_${Date.now()}.xlsx`;
-                      document.body.appendChild(link);
-                      link.click();
-              
-                      // Cleanup
-                      link.remove();
-                      window.URL.revokeObjectURL(url);
-              
-                      toast.success("Report downloaded successfully");
-                  })
-                  .catch((error) => {
-                      console.error("Error:", error);
-                      toast.error("Failed to generate report");
-                  })
-                  .finally(() => {
-                      setLoading(false);
-                  });
-              
-          }
-  
-          catch (error) {
-              console.error("Error:", error);
-              toast.error("Failed to generate report");
-          }
-  
-  
-      }
+    setLoading(true)
+
+    try {
+      let data = {
+        date: selectedDate,
+        breeder: breederOptions.find((item) => item.value === selectedBreeder)?.label,
+        breederID: selectedBreeder,
+        records: filteredData
+      };
+
+      fetch("/api/excel-report/shipping-request", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ payload: data }),
+      })
+        .then(async (res) => {
+          if (!res.ok) throw new Error("Failed to generate report");
+
+          const blob = await res.blob();
+          const url = window.URL.createObjectURL(blob);
+
+          // Create a temporary link to download the file
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = `Koi_Report_${Date.now()}.xlsx`;
+          document.body.appendChild(link);
+          link.click();
+
+          // Cleanup
+          link.remove();
+          window.URL.revokeObjectURL(url);
+
+          toast.success("Report downloaded successfully");
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          toast.error("Failed to generate report");
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+
+    }
+
+    catch (error) {
+      console.error("Error:", error);
+      toast.error("Failed to generate report");
+    }
+
+
+  }
 
 
   return (

@@ -5,8 +5,8 @@ import Image from "next/image";
 export function Logo() {
   return (
     <><div className="relative h-8 flex items-center text-2xl font-bold">
-      <span className="dark:hidden">Kodama Koi Farm</span>
-      <span className="hidden dark:block">Kodama Koi Farm</span>
+      <span className="dark:hidden">KoiTrade System</span>
+      <span className="hidden dark:block">KoiTrade System</span>
 
     </div>
 

@@ -1,6 +1,14 @@
 import { createClient } from "@/utils/supabase/supabase";
 import { KoiInfo } from "@/types/koi";
-import { clearCacheMatchingKeyPattern, getCache, setCache } from "@/utils/cache";
+import {
+  clearCacheMatchingKeyPattern,
+  getCache,
+  setCache,
+} from "@/utils/cache";
+import {
+  mapCustomerNamesToIds,
+  mapShippingLocationNamesToIds,
+} from "@/utils/customer-mapping";
 
 export async function GET(request: Request) {
   const supabaseClient = await createClient();
@@ -68,7 +76,6 @@ export async function GET(request: Request) {
   });
 }
 
-
 export async function POST(req: Request) {
   const supabaseClient = await createClient();
 
@@ -97,15 +104,56 @@ export async function POST(req: Request) {
         },
       }
     );
-  }
-  console.log("Payload", payload);
+  } // Extract unique customer names and shipping location names from payload
+  const customerNames = payload
+    .filter((koi: any) => koi.sold_to)
+    .map((koi: any) => koi.sold_to);
+
+  const locationNames = payload
+    .filter((koi: any) => koi.ship_to)
+    .map((koi: any) => koi.ship_to);
+
+  // Map customer names and location names to their IDs
+  const customerMap = await mapCustomerNamesToIds(customerNames);
+  const locationMap = await mapShippingLocationNamesToIds(locationNames);
+
+  // Update payload with customer_id and ship_to fields based on the names
+  payload = payload.map((koi: any) => {
+    const updatedKoi = { ...koi };
+
+    // Map customer_name to customer_id
+    if (koi.sold_to && customerMap.has(koi.sold_to)) {
+      updatedKoi.customer_id = customerMap.get(koi.sold_to);
+    }
+
+    // Map location_name to ship_to
+    if (koi.ship_to && locationMap.has(koi.ship_to)) {
+      updatedKoi.ship_to = locationMap.get(koi.ship_to);
+    }
+    delete updatedKoi.sold_to; // Remove the original name field
+    return updatedKoi;
+  });
+
+  // console.log("Processed payload with mapped IDs:", payload[0]);
+
   const { data, error } = await supabaseClient.from("koiinfo").upsert(payload);
 
   if (error || configError) {
     let errMsg = error
       ? error.message
       : configError?.message || "Unknown error";
-      console.log("Error", errMsg);
+    console.log("Error", errMsg);
+
+    // check if the error is due to null values
+    if (error && error.code === "22P02") {
+      // koi with any null field
+      let nullpayload = payload.filter((koi: any) => {
+        return Object.values(koi).some((value) => !value);
+      }).map((koi: any) => koi.picture_id);
+      
+      errMsg = `Koi with picture_id ${nullpayload.join(", ")} has null values in one or more fields. Please check your data.`;
+    }
+
     return new Response(
       JSON.stringify({
         message: "An error occurred while adding koi",
