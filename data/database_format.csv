@@ -1,0 +1,4 @@
+picture_id,koi_id,sex,age,size_cm,breeder_id,pcs,jpy_cost,customer_id,ship_to,sale_price_jpy,sale_price_usd,comm,rate,timestamp
+v1019n015,10,m,22,55,19,1,280000,1,6,,,,140,
+v1021n010,23,f,21,75,33,1,3500000,2,6,,,,140,
+v1021n011,23,f,22,55,33,1,0,2,6,,,,140,

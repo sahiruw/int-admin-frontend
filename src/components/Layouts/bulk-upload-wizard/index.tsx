@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Stepper } from './stepper';
 import { UploadStep } from './steps/upload-step';
-import { MappingStep } from './steps/mapping-step';
+import { ValidationStep } from './steps/validation-step';
 import { ReviewStep } from './steps/review-step';
 import { ConfirmationStep } from './steps/confirmation-step';
 
@@ -11,10 +11,10 @@ export function BulkUploadWizard() {
   const [currentStep, setCurrentStep] = useState(0);
   const [csvData, setCsvData] = useState<any[]>([]);
   const [headers, setHeaders] = useState<string[]>([]);
-  const [mappings, setMappings] = useState<Record<string, string>>({});
+  const [validationResult, setValidationResult] = useState<any>(null);
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
 
-  const steps = ['Upload CSV', 'Map Columns', 'Review Data', 'Confirmation'];
+  const steps = ['Upload CSV', 'Validate Data', 'Review Data', 'Confirmation'];
 
   const handleUploadComplete = (data: any[], headers: string[]) => {
     setCsvData(data);
@@ -22,8 +22,8 @@ export function BulkUploadWizard() {
     setCurrentStep(1);
   };
 
-  const handleMappingComplete = (mappings: Record<string, string>) => {
-    setMappings(mappings);
+  const handleValidationComplete = (validation: any) => {
+    setValidationResult(validation);
     setCurrentStep(2);
   };
 
@@ -32,6 +32,11 @@ export function BulkUploadWizard() {
     setCurrentStep(3);
   };
 
+  // Create a dummy mappings object for compatibility with existing components
+  const dummyMappings = headers.reduce((acc, header) => {
+    acc[header] = header; // Map each header to itself
+    return acc;
+  }, {} as Record<string, string>);
   return (
     <div className="space-y-8">
       <Stepper steps={steps} currentStep={currentStep} />
@@ -41,9 +46,9 @@ export function BulkUploadWizard() {
       )}
       
       {currentStep === 1 && (
-        <MappingStep
-          headers={headers}
-          onComplete={handleMappingComplete}
+        <ValidationStep
+          data={csvData}
+          onComplete={handleValidationComplete}
           onBack={() => setCurrentStep(0)}
         />
       )}
@@ -51,9 +56,10 @@ export function BulkUploadWizard() {
       {currentStep === 2 && (
         <ReviewStep
           data={csvData}
-          mappings={mappings}
+          mappings={dummyMappings}
           onComplete={handleReviewComplete}
           onBack={() => setCurrentStep(1)}
+          validationResult={validationResult}
         />
       )}
       
@@ -61,7 +67,7 @@ export function BulkUploadWizard() {
         <ConfirmationStep
           data={csvData}
           selectedRows={selectedRows}
-          mappings={mappings}
+          mappings={dummyMappings}
           onBack={() => setCurrentStep(2)}
           onComplete={() => {/* Add your upload logic here */}}
         />

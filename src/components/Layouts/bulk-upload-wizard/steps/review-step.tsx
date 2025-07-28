@@ -2,35 +2,57 @@
 'use client';
 import { useEffect, useState } from 'react';
 
-export function ReviewStep({ data, mappings, onComplete, onBack }: {
+export function ReviewStep({ data, mappings, onComplete, onBack, validationResult }: {
   data: any[];
   mappings: Record<string, string>;
   onComplete: (selected: number[]) => void;
   onBack: () => void;
-}) {
-  const [selectedRows, setSelectedRows] = useState<number[]>([]);
+  validationResult?: any;
+}) {  const [selectedRows, setSelectedRows] = useState<number[]>([]);
+
+  // Filter to show only valid rows if validation result is available
+  const validRowIndices = validationResult?.invalid ? 
+    data.map((_, index) => index).filter(index => 
+      !validationResult.invalid.some((invalid: any) => invalid.row - 1 === index)
+    ) : 
+    data.map((_, index) => index);
+
+  const displayData = validRowIndices.map(index => ({ originalIndex: index, data: data[index] }));
 
   useEffect(() => {
-    setSelectedRows(data.map((_, i) => i));
-  }, [data]);
+    // Pre-select all valid rows
+    setSelectedRows(validRowIndices);
+  }, [data, validationResult]);
 
-
-  const toggleRow = (index: number) => {
+  const toggleRow = (originalIndex: number) => {
     setSelectedRows(prev => 
-      prev.includes(index)
-        ? prev.filter(i => i !== index)
-        : [...prev, index]
+      prev.includes(originalIndex)
+        ? prev.filter(i => i !== originalIndex)
+        : [...prev, originalIndex]
     );
   };
 
   const toggleAll = () => {
     setSelectedRows(prev => 
-      prev.length === data.length ? [] : data.map((_, i) => i)
+      prev.length === validRowIndices.length ? [] : [...validRowIndices]
     );
   };
-
   return (
     <div>
+      {validationResult && (
+        <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+          <h3 className="font-medium text-blue-800 dark:text-blue-200 mb-2">Validation Summary</h3>
+          <p className="text-sm text-blue-600 dark:text-blue-400">
+            Showing {validRowIndices.length} valid records out of {data.length} total records.
+            {validationResult.invalid?.length > 0 && (
+              <span className="text-red-600 dark:text-red-400">
+                {' '}({validationResult.invalid.length} invalid records hidden)
+              </span>
+            )}
+          </p>
+        </div>
+      )}
+
       <div className="overflow-x-auto" 
         style={{ maxHeight: '53vh', overflow: 'auto' }}
         >
@@ -41,7 +63,7 @@ export function ReviewStep({ data, mappings, onComplete, onBack }: {
               <th>
                 <input
                   type="checkbox"
-                  checked={selectedRows.length === data.length}
+                  checked={selectedRows.length === validRowIndices.length && validRowIndices.length > 0}
                   onChange={toggleAll}
                 />
               </th>
@@ -51,17 +73,17 @@ export function ReviewStep({ data, mappings, onComplete, onBack }: {
             </tr>
           </thead>
           <tbody>
-            {data.map((row, index) => (
+            {displayData.map((item, index) => (
               <tr key={index} className="border-t">
                 <td className="p-2">
                   <input
                     type="checkbox"
-                    checked={selectedRows.includes(index)}
-                    onChange={() => toggleRow(index)}
+                    checked={selectedRows.includes(item.originalIndex)}
+                    onChange={() => toggleRow(item.originalIndex)}
                   />
                 </td>
                 {Object.entries(mappings).map(([csvHeader, field]) => (
-                  <td key={field} className="p-2">{row[csvHeader]}</td>
+                  <td key={field} className="p-2">{item.data[csvHeader]}</td>
                 ))}
               </tr>
             ))}

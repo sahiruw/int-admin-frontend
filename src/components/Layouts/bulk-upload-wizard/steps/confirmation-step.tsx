@@ -20,20 +20,32 @@ export function ConfirmationStep({
         success: boolean;
         message: string;
         details?: string;
-    } | null>(null);
-
-    const handleSubmit = async () => {
+    } | null>(null);    const handleSubmit = async () => {
         setIsSubmitting(true);
         try {
-            // Filter selected data based on mappings
-            const payload = selectedRows.map(index => {
-                const row = data[index];
-                return Object.entries(mappings).reduce((acc, [csvHeader, field]) => {
-                    acc[field] = row[csvHeader];
-                    return acc;
-                }, {} as Record<string, any>);
-            });
+            // Filter selected data
+            const selectedData = selectedRows.map(index => data[index]);
+            console.log('Selected data:', selectedData);
 
+            // First, map the data using the CSV mapper
+            const mapResponse = await fetch('/api/csv-mapper', {
+                method: 'POST',
+                body: JSON.stringify({ data: selectedData, action: 'map' }),
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const mapResult = await mapResponse.json();
+
+            if (!mapResult.success) {
+                throw new Error(mapResult.message || 'Failed to map data');
+            }
+
+            // If there are mapping errors, show them
+            if (mapResult.errors.length > 0) {
+                console.warn('Mapping errors:', mapResult.errors);
+            }
+
+            // Upload the mapped data
+            const payload = mapResult.mapped;
             console.log('Payload to upload:', payload);
 
             const response = await fetch('/api/koi', {
@@ -41,8 +53,8 @@ export function ConfirmationStep({
                 body: JSON.stringify({ payload }),
                 headers: { 'Content-Type': 'application/json' }
             });
-            const result = await response.json();
-
+            const result = await response.json();            
+            
             if (result.error) {
                 setUploadResult({
                     success: false,
@@ -51,9 +63,16 @@ export function ConfirmationStep({
                 });
             }
             else {
+                const successCount = mapResult.summary.success;
+                const errorCount = mapResult.errors.length;
+                const message = errorCount > 0 
+                    ? `Successfully uploaded ${successCount} koi records. ${errorCount} records had mapping errors.`
+                    : `Successfully uploaded ${successCount} koi records`;
+                
                 setUploadResult({
                     success: true,
-                    message: `Successfully uploaded ${selectedRows.length} koi records`
+                    message,
+                    details: errorCount > 0 ? `Mapping errors: ${mapResult.errors.map(e => e.error).join(', ')}` : undefined
                 });
                 onComplete();
             }

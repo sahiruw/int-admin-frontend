@@ -207,9 +207,12 @@ export async function createShippingLocation(name: string): Promise<ShippingLoca
 export async function mapCustomerNamesToIds(customerNames: string[]): Promise<Map<string, number>> {
   const customers = await getAllCustomers();
   const result = new Map<string, number>();
-  
-  // Filter out any null, undefined or empty values
-  const validCustomerNames = customerNames.filter(name => name && name.trim() !== '');
+    // Filter out any null, undefined or empty values and ensure they are strings
+  const validCustomerNames = customerNames.filter(name => {
+    if (!name) return false;
+    const nameStr = typeof name === 'string' ? name : String(name);
+    return nameStr.trim() !== '';
+  }).map(name => typeof name === 'string' ? name : String(name));
   
   for (const name of validCustomerNames) {
     let customer = findCustomerByName(customers, name);
@@ -233,9 +236,12 @@ export async function mapCustomerNamesToIds(customerNames: string[]): Promise<Ma
 export async function mapShippingLocationNamesToIds(locationNames: string[]): Promise<Map<string, number>> {
   const locations = await getAllShippingLocations();
   const result = new Map<string, number>();
-  
-  // Filter out any null, undefined or empty values
-  const validLocationNames = locationNames.filter(name => name && name.trim() !== '');
+    // Filter out any null, undefined or empty values and ensure they are strings
+  const validLocationNames = locationNames.filter(name => {
+    if (!name) return false;
+    const nameStr = typeof name === 'string' ? name : String(name);
+    return nameStr.trim() !== '';
+  }).map(name => typeof name === 'string' ? name : String(name));
   
   for (const name of validLocationNames) {
     let location = findShippingLocationByName(locations, name);
