@@ -1,0 +1,9 @@
+This is row 1 - should be skipped
+This is row 2 - should be skipped  
+This is row 3 - should be skipped
+Picture ID,Koi ID,Variety,Sex,Age,Size CM,Bre-ID,Breeder,PCS,JPY Cost,JPY Total,USD Cost,USD Total,Sold to,Ship to,Sales,Comm,Total,Sales ,Comm ,Total 
+test001,10,Kohaku,m,22,55,2,Dainichi Koi Farm,1,280000,"280,000","2,000.00","2,000.00",Summer,Japan,"333,333","66,667","400,000",,,
+test002,23,Showa,f,21,75,3,Hirasawa Koi Farm,1,3500000,"3,500,000","25,000.00","25,000.00",Joan,Japan,"5,000,000","1,000,000","6,000,000",,,
+test003,10,Kohaku,f,22,58,63,Aokiya Koi Farm,1,2520000,"2,520,000","18,000.00","18,000.00",Joan,Japan,"2,800,000","560,000","3,360,000",,,
+test004,32,Shiro Utsuri,f,22,50,71,Genjiro Koi Farm,1,50000,"50,000",357.14,357.14,Joan,Japan,,,,,,
+test005,17,Taisho Sanke,f,22,59,79,Fukazawa Koi Farm,1,400000,"400,000","2,857.14","2,857.14",Mike,Japan,,,,"5,500",,"5,500"
