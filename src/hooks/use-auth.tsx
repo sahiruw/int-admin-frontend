@@ -10,6 +10,7 @@ interface AuthContextType {
   supabaseUser: SupabaseUser | null
   loading: boolean
   signIn: (email: string, password: string) => Promise<{ error?: string }>
+  signUp: (email: string, password: string, fullName: string, role?: UserRole) => Promise<{ error?: string }>
   signOut: () => Promise<void>
   hasPermission: (resource: ResourceType, action: ActionType) => boolean
   isAdmin: () => boolean
@@ -74,11 +75,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error('Error fetching user profile:', error)
     }
   }
-
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
+    })
+
+    if (error) {
+      return { error: error.message }
+    }
+
+    return {}
+  }
+
+  const signUp = async (email: string, password: string, fullName: string, role: UserRole = 'assistant') => {
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+          role: role
+        }
+      }
     })
 
     if (error) {
@@ -115,12 +134,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isAssistant = (): boolean => {
     return user?.role === 'assistant'
   }
-
   const value = {
     user,
     supabaseUser,
     loading,
     signIn,
+    signUp,
     signOut,
     hasPermission,
     isAdmin,
