@@ -15,13 +15,22 @@ export interface InputRow {
   'USD Cost': string;
   'USD Total': string;
   'Sold to': string;
+  'Sold to ': string; // Extra space variant
   'Ship to': string;
+  'Ship to ': string; // Extra space variant
   'Sales': string;
   'Comm': string;
   'Total': string;
   'Sales ': string; // Extra space variant
   'Comm ': string;  // Extra space variant  
   'Total ': string; // Extra space variant
+  // New template format columns
+  'Sales_JPY': string;
+  'Comm_JPY': string;
+  'Total_JPY': string;
+  'Sales_USD': string;
+  'Comm_USD': string;
+  'Total_USD': string;
   [key: string]: string; // Allow for additional columns
 }
 
@@ -217,7 +226,6 @@ export class CSVMapper {
     
     return parseFloat(cleaned) || 0;
   }
-
   /**
    * Calculate sales prices and commission from input
    */  private calculateSales(row: InputRow): { 
@@ -227,9 +235,10 @@ export class CSVMapper {
   } {
     if (!this.lookupTables) throw new Error("Configuration not loaded");
 
-    const salesJpy = this.parseNumeric(this.getRowValue(row, 'Sales', 'sales'));
-    const commJpy = this.parseNumeric(this.getRowValue(row, 'Comm', 'comm'));
-    const totalJpy = this.parseNumeric(this.getRowValue(row, 'Total', 'total'));
+    // Try new format first (Sales_JPY, Comm_JPY, Total_JPY)
+    let salesJpy = this.parseNumeric(this.getRowValue(row, 'Sales_JPY', 'Sales', 'sales'));
+    let commJpy = this.parseNumeric(this.getRowValue(row, 'Comm_JPY', 'Comm', 'comm'));
+    const totalJpy = this.parseNumeric(this.getRowValue(row, 'Total_JPY', 'Total', 'total'));
 
     // If we have sales data in JPY
     if (salesJpy > 0) {
@@ -240,9 +249,9 @@ export class CSVMapper {
       };
     }
 
-    // Check for USD sales data in the rightmost columns with spaces
-    const salesUsd = this.parseNumeric(this.getRowValue(row, 'Sales ', 'Sales.1', 'sales_usd'));
-    const commUsd = this.parseNumeric(this.getRowValue(row, 'Comm ', 'Comm.1', 'comm_usd'));
+    // Try new format USD columns (Sales_USD, Comm_USD, Total_USD)
+    let salesUsd = this.parseNumeric(this.getRowValue(row, 'Sales_USD', 'Sales ', 'Sales.1', 'sales_usd'));
+    let commUsd = this.parseNumeric(this.getRowValue(row, 'Comm_USD', 'Comm ', 'Comm.1', 'comm_usd'));
 
     if (salesUsd > 0) {
       return {
@@ -290,11 +299,9 @@ export class CSVMapper {
       if (!breederFound) {
         console.warn(`Skipping row ${pictureId}: Unknown breeder "${breederId} - ${breederName}"`);
         return null;
-      }
-
-      // Find or create customer and location
-      const soldTo = this.getRowValue(row, 'Sold to', 'sold_to', 'customer');
-      const shipTo = this.getRowValue(row, 'Ship to', 'ship_to', 'location');
+      }      // Find or create customer and location
+      const soldTo = this.getRowValue(row, 'Sold to ', 'Sold to', 'sold_to', 'customer');
+      const shipTo = this.getRowValue(row, 'Ship to ', 'Ship to', 'ship_to', 'location');
       const customerId = await this.findOrCreateCustomer(soldTo);
       const locationId = await this.findOrCreateLocation(shipTo);
 
