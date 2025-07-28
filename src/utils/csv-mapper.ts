@@ -101,9 +101,10 @@ export class CSVMapper {
       if (configRes.error) throw new Error(`Configuration: ${configRes.error.message}`);
 
       // Handle configuration - use first row if available, otherwise use defaults
-      const configData = configRes.data && configRes.data.length > 0 
-        ? configRes.data[0] 
-        : { ex_rate: 140, commission: 0.2 };
+    if (!configRes.data || configRes.data.length === 0) {
+      throw new Error("No configuration found in database");
+    }
+    const configData = configRes.data[0];
 
       this.lookupTables = {
         breeders: breedersRes.data || [],
@@ -225,9 +226,9 @@ export class CSVMapper {
       .replace(/[^\d.-]/g, '');
     
     return parseFloat(cleaned) || 0;
-  }
-  /**
+  }  /**
    * Calculate sales prices and commission from input
+   * Uses database commission rate and exchange rate only, ignoring CSV commission values
    */  private calculateSales(row: InputRow): { 
     sale_price_jpy: number | null; 
     sale_price_usd: number | null; 
@@ -235,29 +236,28 @@ export class CSVMapper {
   } {
     if (!this.lookupTables) throw new Error("Configuration not loaded");
 
-    // Try new format first (Sales_JPY, Comm_JPY, Total_JPY)
-    let salesJpy = this.parseNumeric(this.getRowValue(row, 'Sales_JPY', 'Sales', 'sales'));
-    let commJpy = this.parseNumeric(this.getRowValue(row, 'Comm_JPY', 'Comm', 'comm'));
-    const totalJpy = this.parseNumeric(this.getRowValue(row, 'Total_JPY', 'Total', 'total'));
+    // Get sales amounts from CSV (ignore commission columns from CSV)
+    const salesJpy = this.parseNumeric(this.getRowValue(row, 'Sales_JPY', 'Sales', 'sales'));
+    const salesUsd = this.parseNumeric(this.getRowValue(row, 'Sales_USD', 'Sales ', 'Sales.1', 'sales_usd'));
+
+    // Always use commission rate from database configuration
+    const commissionRate = this.lookupTables.configuration.commission;
 
     // If we have sales data in JPY
     if (salesJpy > 0) {
       return {
         sale_price_jpy: salesJpy,
         sale_price_usd: null,
-        comm: commJpy > 0 ? commJpy / salesJpy : this.lookupTables.configuration.commission
+        comm: commissionRate
       };
     }
 
-    // Try new format USD columns (Sales_USD, Comm_USD, Total_USD)
-    let salesUsd = this.parseNumeric(this.getRowValue(row, 'Sales_USD', 'Sales ', 'Sales.1', 'sales_usd'));
-    let commUsd = this.parseNumeric(this.getRowValue(row, 'Comm_USD', 'Comm ', 'Comm.1', 'comm_usd'));
-
+    // If we have sales data in USD
     if (salesUsd > 0) {
       return {
         sale_price_jpy: null,
         sale_price_usd: salesUsd,
-        comm: commUsd > 0 ? commUsd / salesUsd : this.lookupTables.configuration.commission
+        comm: commissionRate
       };
     }
 
@@ -265,7 +265,7 @@ export class CSVMapper {
     return {
       sale_price_jpy: null,
       sale_price_usd: null,
-      comm: this.lookupTables.configuration.commission
+      comm: commissionRate
     };
   }
 
