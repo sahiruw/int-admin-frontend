@@ -90,7 +90,7 @@ export class CSVMapper {
         supabaseClient.from("variety").select("id, variety"),
         supabaseClient.from("customer").select("id, name"),
         supabaseClient.from("shippinglocation").select("id, name"),
-        supabaseClient.from("configuration").select("ex_rate, commission").limit(1)
+        supabaseClient.from("configuration").select("ex_rate, commission, created_at").order("created_at", { ascending: false }).limit(1)
       ]);
 
       // Check for errors
@@ -394,7 +394,7 @@ export class CSVMapper {
       const row = rows[i];
       const issues: string[] = [];
 
-      console.log(`Validating row ${i + 1}:`, row);
+    //   console.log(`Validating row ${i + 1}:`, row);
 
       // Check required fields using helper method
       const pictureId = this.getRowValue(row, 'Picture ID', 'picture_id', 'PictureID');

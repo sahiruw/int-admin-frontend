@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
       // Validate the data and return report
       const validation = await mapper.validateRows(data as InputRow[]);
       
-      console.log('Validation result:', validation);
+      // console.log('Validation result:', validation);
       
       return new Response(
         JSON.stringify({

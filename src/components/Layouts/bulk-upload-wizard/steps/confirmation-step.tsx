@@ -25,7 +25,7 @@ export function ConfirmationStep({
         try {
             // Filter selected data
             const selectedData = selectedRows.map(index => data[index]);
-            console.log('Selected data:', selectedData);
+            // console.log('Selected data:', selectedData);
 
             // First, map the data using the CSV mapper
             const mapResponse = await fetch('/api/csv-mapper', {
@@ -46,7 +46,7 @@ export function ConfirmationStep({
 
             // Upload the mapped data
             const payload = mapResult.mapped;
-            console.log('Payload to upload:', payload);
+            // console.log('Payload to upload:', payload);
 
             const response = await fetch('/api/koi', {
                 method: 'POST',
