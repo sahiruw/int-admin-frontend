@@ -77,9 +77,41 @@ export async function POST(req: Request) {
         );
       }
 
-      // Wait a bit for the trigger to create the profile
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Poll for the trigger to create the profile with exponential backoff
+      const maxRetries = 5;
+      const baseDelay = 500; // Start with 500ms
+      let attempt = 0;
+      let profileCreated = false;
 
+      while (attempt < maxRetries && !profileCreated) {
+        const { data: existingProfile, error: fetchError } = await supabaseClient
+          .from("user_profiles")
+          .select("*")
+          .eq('id', authData.user.id)
+          .single();
+
+        if (existingProfile) {
+          profileCreated = true;
+          break;
+        }
+
+        if (fetchError) {
+          console.error(`Attempt ${attempt + 1} failed: ${fetchError.message}`);
+        }
+
+        attempt++;
+        const delay = baseDelay * Math.pow(2, attempt - 1); // Exponential backoff
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+
+      if (!profileCreated) {
+        return NextResponse.json(
+          {
+            message: "User created but profile setup failed after retries",
+          },
+          { status: 500 }
+        );
+      }
       // Now update the user profile with the correct role using our server client
       const supabaseClient = await createClient();
       const { data: profileData, error: profileError } = await supabaseClient
