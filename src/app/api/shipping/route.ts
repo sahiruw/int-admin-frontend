@@ -1,3 +1,4 @@
+import { clearCacheMatchingKeyPattern } from "@/utils/cache";
 import { createClient } from "@/utils/supabase/supabase";
 
 
@@ -22,7 +23,9 @@ export async function PUT(req: Request) {
         },
       }
     );
-  }
+  } 
+
+  clearCacheMatchingKeyPattern("koi_*")
 
   return new Response(
     JSON.stringify({
