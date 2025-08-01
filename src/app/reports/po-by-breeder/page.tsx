@@ -69,7 +69,9 @@ const page = () => {
       setLoading(true);
       const payload = Object.entries(shippingData).map(([key, value]) => ({
         picture_id: key,
-        ...value,
+        ...Object.fromEntries(
+          Object.entries(value).map(([k, v]) => [k, v === "" ? null : v])
+        ),
       }));
 
       console.log("Payload", payload);
