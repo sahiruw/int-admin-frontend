@@ -91,33 +91,34 @@ const page = () => {
     }
   }, [user, loading])
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-      </div>
-    )
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="flex items-center justify-center min-h-screen">
+  //       <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+  //     </div>
+  //   )
+  // }
 
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-            Please log in to access the dashboard
-          </h1>
-          <Link 
-            href="/auth/login"
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Go to Login
-          </Link>
-        </div>
-      </div>
-    )
-  }
-  const displayName = user.full_name || 'User'
-  const displayRole = user.role === 'admin' ? 'Administrator' : 'Assistant'
+  // if (!user) {
+  //   return (
+  //     <div className="flex items-center justify-center min-h-screen">
+  //       <div className="text-center">
+  //         <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+  //           Please log in to access the dashboard
+  //         </h1>
+  //         <Link 
+  //           href="/auth/login"
+  //           className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
+  //         >
+  //           Go to Login
+  //         </Link>
+  //       </div>
+  //     </div>
+  //   )
+  // }
+
+  const displayName = user?.full_name || 'User'
+  const displayRole = user?.role === 'admin' ? 'Administrator' : 'Assistant'
   
   const quickActions = [
     {
