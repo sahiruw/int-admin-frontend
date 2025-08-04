@@ -168,7 +168,7 @@ const page = () => {
     try {
       let data = {
         date: selectedDate,
-        breeder: breederOptions.find((item) => item.value === selectedBreeder)?.label,
+        breeder: breederOptions.find((item: any) => item.value === selectedBreeder)?.label,
         breederID: selectedBreeder,
         records: filteredData
       };
@@ -223,7 +223,7 @@ const page = () => {
       <div className="flex items-end justify-between w-full gap-4">
         <div className="flex items-end gap-4">
           <FilteredTextboxDropdown
-            placeholder={breederOptions.find((item) => item.value === selectedBreeder)?.label}
+            placeholder={breederOptions.find((item: any) => item.value === selectedBreeder)?.label}
             items={breederOptions}
             onChange={(value) => {
               setSelectedBreeder(value);
