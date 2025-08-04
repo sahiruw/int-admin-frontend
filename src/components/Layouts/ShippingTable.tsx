@@ -141,18 +141,17 @@ export function DataTable({
   }, [data]);
 
   return (
-    <div className="space-y-4">
-      {/* Master Ship Date Controls */}
+    <div className="space-y-4">      {/* Master Ship Date Controls */}
       <div className="flex items-center gap-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
         <div className="flex items-center gap-2">
-          <label className="text-sm font-medium text-blue-700 dark:text-blue-300">
+          <label className="text-sm text-blue-800 dark:text-blue-200">
             Master Ship Date:
           </label>
           <input
             type="date"
             value={masterShipDate}
             onChange={(e) => setMasterShipDate(e.target.value)}
-            className="px-3 py-1 border border-blue-300 dark:border-blue-600 rounded-md bg-white dark:bg-dark-2 text-sm"
+            className="px-3 py-1 border border-blue-300 dark:border-blue-600 rounded-md bg-white dark:bg-dark-2 text-sm "
           />
         </div>
         
@@ -160,7 +159,7 @@ export function DataTable({
           <button
             onClick={applyMasterDateToSelected}
             disabled={!masterShipDate || selectedRows.size === 0}
-            className="px-3 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+            className="px-3 py-1 bg-blue-600 text-white text-sm  rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
             title={`Apply to ${selectedRows.size} selected rows`}
           >
             Apply to Selected ({selectedRows.size})
@@ -169,21 +168,20 @@ export function DataTable({
           <button
             onClick={applyMasterDateToAll}
             disabled={!masterShipDate}
-            className="px-3 py-1 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+            className="px-3 py-1 bg-green-600 text-white text-sm  rounded-md hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
           >
             Apply to All
           </button>
         </div>
         
-        <div className="text-xs text-blue-600 dark:text-blue-400 ml-auto">
+        <div className="text-sm  text-blue-700 dark:text-blue-300 ml-auto">
           💡 Select rows by clicking checkboxes, then apply master date to save time
         </div>
       </div>
 
       <div className="overflow-y-auto" style={{ maxHeight: "72vh", overflowY: "auto" }}>
         <Table className="w-full table-fixed">
-          <TableHeader>
-            <TableRow className="sticky top-0 z-10 bg-[#F7F9FC] dark:bg-dark-2 border-none [&>th]:text-base [&>th]:text-dark [&>th]:dark:text-white">
+          <TableHeader>            <TableRow className="sticky top-0 z-10 bg-[#F7F9FC] dark:bg-dark-2 border-none [&>th]:text-base [&>th]: [&>th]:text-dark [&>th]:dark:text-white">
               <TableHead className="w-8">
                 <input
                   type="checkbox"
@@ -196,29 +194,29 @@ export function DataTable({
               {columns?.map((header, index) => (
                 <TableHead
                   key={index}
-                  className={cn("w-auto", index === 0 ? "text-left" : "text-right")}
+                  className={cn("w-auto ", index === 0 ? "text-left" : "text-right")}
                 >
                   {header}
                 </TableHead>
               ))}
-              <TableHead className="w-auto" colSpan={7}>
+              <TableHead className="w-auto " colSpan={7}>
                 Ship Info
               </TableHead>
             </TableRow>
 
-            <TableRow className="sticky z-10 bg-[#F7F9FC] dark:bg-dark-2 border-none  [&>th]:text-base [&>th]:text-dark [&>th]:dark:text-white">
+            <TableRow className="sticky z-10 bg-[#F7F9FC] dark:bg-dark-2 border-none [&>th]:text-base [&>th]: [&>th]:text-dark [&>th]:dark:text-white">
               <TableHead />
               <TableHead colSpan={4} />
               {input_columns.map((column) => (
-                <TableHead key={column.key}>{column.Header}</TableHead>
+                <TableHead key={column.key} className="">{column.Header}</TableHead>
               ))}
-              <TableHead className="w-auto">
+              <TableHead className="w-auto ">
                 Total KG
               </TableHead>
-              <TableHead className="w-auto">
+              <TableHead className="w-auto ">
                 Grouping
               </TableHead>
-              <TableHead className="w-auto">
+              <TableHead className="w-auto ">
                 S/C Per Koi
               </TableHead>
             </TableRow>
@@ -242,14 +240,12 @@ export function DataTable({
                       onChange={() => toggleRowSelection(row.picture_id)}
                       className="w-4 h-4"
                     />
-                  </TableCell>
-
-                  <TableCell>
+                  </TableCell>                  <TableCell>
                     <div className="flex flex-col">
-                      <p className="font-medium text-dark dark:text-white">
+                      <p className=" text-dark dark:text-white">
                         {row.picture_id}
                       </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                      <p className="text-sm  text-gray-600 dark:text-gray-300">
                         {row.sex} | {row.age} yrs | {row.size_cm} cm
                       </p>
                     </div>
@@ -257,7 +253,7 @@ export function DataTable({
 
                   <TableCell>
                     <div className="flex flex-col">
-                      <p className="font-medium text-dark dark:text-white">
+                      <p className=" text-dark dark:text-white">
                         {row.variety_name} ({row.koi_id})
                       </p>
                     </div>
@@ -265,10 +261,10 @@ export function DataTable({
 
                   <TableCell>
                     <div className="flex flex-col text-right">
-                      <p className="font-medium text-dark dark:text-white">
+                      <p className=" text-dark dark:text-white">
                         ¥{row.jpy_cost} * {row.pcs} Pcs
                       </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                      <p className="text-sm  text-gray-600 dark:text-gray-300">
                         ¥{row.jpy_total}
                       </p>
                     </div>
@@ -276,36 +272,33 @@ export function DataTable({
 
                   <TableCell>
                     <div className="flex flex-col text-right">
-                      <p className="font-medium text-dark dark:text-white">
+                      <p className=" text-dark dark:text-white">
                         {row.customer_name}
                       </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                      <p className="text-sm  text-gray-600 dark:text-gray-300">
                         {row.location_name && (`📍 ${row.location_name}`)}
                       </p>
                     </div>
                   </TableCell>
 
                   {input_columns?.map(({ key, Header, type }) => (
-                    <TableCell key={key} className="text-right">
-                      <input
+                    <TableCell key={key} className="text-right">                      <input
                         type={type}
                         value={row[key] || ""}
                         onChange={(e) => handleInputChange(row.picture_id, key, e.target.value)}
                         className={cn(
-                          "w-full text-right border border-gray-100 rounded-md p-2",
+                          "w-full text-right border border-gray-100 rounded-md p-2 ",
                           key === "date" && isSelected && "border-blue-300 bg-blue-50 dark:bg-blue-900/20"
                         )}
                       />
                     </TableCell>
-                  ))}
-
-                  <TableCell className="text-right">
+                  ))}                  <TableCell className="text-right">
                     {(row.box_count && row.weight_of_box) ? (
                       <div className="flex flex-col text-right">
-                        <p className="font-medium text-dark dark:text-white">
+                        <p className=" text-dark dark:text-white">
                           {row.box_count * row.weight_of_box} KG
                         </p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                        <p className="text-sm  text-gray-600 dark:text-gray-300">
                           {row.weight_of_box} x {row.box_count}
                         </p>
                       </div>
@@ -317,13 +310,13 @@ export function DataTable({
                       type="text"
                       value={row["grouping"] || ""}
                       onChange={(e) => handleInputChange(row.picture_id, "grouping", e.target.value)}
-                      className="w-full text-right border border-gray-100 rounded-md p-2"
+                      className="w-full text-right border border-gray-100 rounded-md p-2 "
                     />
                   </TableCell>
 
                   <TableCell className="text-right">
                     {row.grouping && totalsByGroup[row.grouping] !== undefined && (
-                      <p className="font-medium text-dark dark:text-white">
+                      <p className=" text-dark dark:text-white">
                         {totalsByGroup[row.grouping].toFixed(2)}
                       </p>
                     )}
