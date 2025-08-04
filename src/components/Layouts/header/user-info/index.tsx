@@ -19,11 +19,11 @@ export function UserInfo() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const { user, supabaseUser, signOut, loading } = useAuth();
 
-  if (loading) {
-    return (
-      <div className="animate-pulse bg-gray-200 dark:bg-gray-700 rounded-full h-12 w-12"></div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="animate-pulse bg-gray-200 dark:bg-gray-700 rounded-full h-12 w-12"></div>
+  //   );
+  // }
 
   if (!user || !supabaseUser) {
     return null;
