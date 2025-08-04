@@ -71,11 +71,11 @@ const Page = () => {
 
             <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Shipping Cost (USD)
+                    Shipping Cost (JPY)
                 </label>
                 <input
                     type="number"
-                    placeholder="e.g., 10.00"
+                    placeholder="e.g., 1000.00"
                     value={shippingCost.toString()}
                     onChange={(e) => setShippingCost(parseFloat(e.target.value))}
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:placeholder-gray-400"
@@ -84,7 +84,7 @@ const Page = () => {
 
             <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Commission (%)
+                    Commission
                 </label>
                 <input
                     type="number"
