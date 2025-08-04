@@ -170,7 +170,7 @@ export async function POST(req: Request) {
           updateSheetProperties: {
             properties: {
               sheetId: sheetId,
-              title: "sahiru",
+              title: breeder,
             },
             fields: "title",
           },
