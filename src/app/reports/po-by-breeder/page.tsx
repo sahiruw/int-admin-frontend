@@ -231,7 +231,7 @@ const page = () => {
           />
 
           <Picker
-            value={selectedDate}
+            value={selectedDate || ""}
             setValue={setSelectedDate}
             items={uniqueDates}
             width="min-w-min"

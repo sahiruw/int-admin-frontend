@@ -41,15 +41,32 @@ export function DataTable({
     { key: "box_size", Header: "Box Size", type: "number" },
     { key: "weight_of_box", Header: "KG", type: "number" },
   ];
-
   const [data, setData] = useState<KoiInfo[]>(rawData);
   const [masterShipDate, setMasterShipDate] = useState<string>("");
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
+  const [shippingCost, setShippingCost] = useState<number>(0);
 
   useEffect(() => {
     setData(rawData)
   }
     , [rawData]);
+
+  useEffect(() => {
+    // Fetch shipping cost from configuration
+    const fetchShippingCost = async () => {
+      try {
+        const response = await fetch('/api/config');
+        const config = await response.json();
+        if (config && config.shipping_cost) {
+          setShippingCost(config.shipping_cost);
+        }
+      } catch (error) {
+        console.error('Error fetching shipping cost:', error);
+      }
+    };
+    
+    fetchShippingCost();
+  }, []);
 
   const handleInputChange = (picture_id: string, field: string, value: string | number): void => {
     setData((prev) => {
@@ -312,12 +329,10 @@ export function DataTable({
                       onChange={(e) => handleInputChange(row.picture_id, "grouping", e.target.value)}
                       className="w-full text-right border border-gray-100 rounded-md p-2 "
                     />
-                  </TableCell>
-
-                  <TableCell className="text-right">
+                  </TableCell>                  <TableCell className="text-right">
                     {row.grouping && totalsByGroup[row.grouping] !== undefined && (
                       <p className=" text-dark dark:text-white">
-                        {totalsByGroup[row.grouping].toFixed(2)}
+                        {(totalsByGroup[row.grouping] * shippingCost).toFixed(2)}
                       </p>
                     )}
                   </TableCell>
