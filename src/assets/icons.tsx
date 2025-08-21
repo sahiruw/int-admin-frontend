@@ -426,6 +426,7 @@ export function EditIcon(props: IconProps) {
 import { Save } from "lucide-react";
 import { XSquare } from "lucide-react";
 import { Redo } from "lucide-react";
+import { Truck } from "lucide-react";
 
 
 export function SaveIcon(props: IconProps) {
@@ -442,4 +443,8 @@ export function RedoIcon(props: IconProps) {
 
 export function ClearIcon(props: IconProps) {
   return <XSquare width={18} height={18} {...props} />;
+}
+
+export function TruckIcon(props: IconProps) {
+  return <Truck width={18} height={18} {...props} />;
 }
