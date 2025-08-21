@@ -1,6 +1,6 @@
 "use client";
 
-import { TrashIcon, EditIcon } from "@/assets/icons";
+import { TrashIcon, EditIcon, TruckIcon } from "@/assets/icons";
 import {
   Table,
   TableBody,
@@ -9,10 +9,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ConfirmationDialog } from "@/components/Layouts/ConfirmationDialog";
 import { cn } from "@/lib/utils";
 import dayjs from "dayjs";
 import { useState } from "react";
 import { KoiInfo } from "@/types/koi";
+import { toast } from "react-hot-toast";
 
 
 export function KoiInfoTable({ data, setEditingKoiId }: { data: KoiInfo[]; setEditingKoiId: (id: string | null) => void }) {
@@ -20,6 +22,15 @@ export function KoiInfoTable({ data, setEditingKoiId }: { data: KoiInfo[]; setEd
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(pageSizeOptions[Math.ceil(pageSizeOptions.length / 2)]);
+  const [confirmationDialog, setConfirmationDialog] = useState<{
+    isOpen: boolean;
+    pictureId: string | null;
+    currentShippedStatus: boolean;
+  }>({
+    isOpen: false,
+    pictureId: null,
+    currentShippedStatus: false,
+  });
 
   const totalPages = Math.ceil(data.length / itemsPerPage);
   const startEntry = (currentPage - 1) * itemsPerPage;
@@ -28,6 +39,50 @@ export function KoiInfoTable({ data, setEditingKoiId }: { data: KoiInfo[]; setEd
 
   const start = data.length > 0 ? startEntry + 1 : 0;
   const end = Math.min(endEntry, data.length);
+
+  const handleShippedToggle = (pictureId: string, currentStatus: boolean) => {
+    setConfirmationDialog({
+      isOpen: true,
+      pictureId,
+      currentShippedStatus: currentStatus,
+    });
+  };
+
+  const confirmShippedToggle = async () => {
+    if (!confirmationDialog.pictureId) return;
+
+    try {
+      const response = await fetch('/api/shipping', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          payload: {
+            picture_id: confirmationDialog.pictureId,
+            shipped: !confirmationDialog.currentShippedStatus,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update shipping status');
+      }
+
+      // Show success message
+      toast.success(`Koi ${!confirmationDialog.currentShippedStatus ? 'marked as shipped' : 'marked as not shipped'}`);
+      
+      // You might want to refresh the data here or update the local state
+      // For now, the user would need to refresh to see the change
+      window.location.reload();
+      
+    } catch (error) {
+      console.error('Error updating shipped status:', error);
+      toast.error('Failed to update shipping status');
+    } finally {
+      setConfirmationDialog({ isOpen: false, pictureId: null, currentShippedStatus: false });
+    }
+  };
 
 
 
@@ -94,11 +149,12 @@ export function KoiInfoTable({ data, setEditingKoiId }: { data: KoiInfo[]; setEd
                   <p className="text-sm text-gray-500 dark:text-gray-400">
                     {row.location_name && (`📍 ${row.location_name}`)}
                   </p>
-                </TableCell>
-
-                {SalesCell(row.sale_price_jpy, row.sale_price_usd)}
-                {SalesCell(row.sale_price_jpy * row.comm, row.sale_price_usd * row.comm)}
-                {SalesCell(row.sale_price_jpy * (1+  row.comm), row.sale_price_usd * (1+  row.comm))}
+                </TableCell>                {SalesCell(row.sale_price_jpy, row.sale_price_usd)}
+                {SalesCell(row.comm_jpy, row.comm_usd)}
+                {SalesCell(
+                  row.sale_price_jpy && row.comm_jpy ? row.sale_price_jpy + row.comm_jpy : row.sale_price_jpy, 
+                  row.sale_price_usd && row.comm_usd ? row.sale_price_usd + row.comm_usd : row.sale_price_usd
+                )}
 
                 <TableCell>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -118,9 +174,7 @@ export function KoiInfoTable({ data, setEditingKoiId }: { data: KoiInfo[]; setEd
                   <p className="text-sm text-gray-500 dark:text-gray-400">
                     📆 {dayjs(row.date).format("MMM DD, YYYY")}
                   </p>
-                </TableCell>
-
-                <TableCell>
+                </TableCell>                <TableCell>
                   <div className="flex gap-2">
                     <button
                       className="hover:text-primary-600"
@@ -128,6 +182,18 @@ export function KoiInfoTable({ data, setEditingKoiId }: { data: KoiInfo[]; setEd
                       onClick={() => setEditingKoiId(row.picture_id)}
                     >
                       <EditIcon className="w-5 h-5" />
+                    </button>
+                    <button
+                      className={cn(
+                        "transition-colors",
+                        row.shipped 
+                          ? "text-green-600 hover:text-green-700" 
+                          : "text-gray-400 hover:text-primary-600"
+                      )}
+                      title={row.shipped ? "Mark as not shipped" : "Mark as shipped"}
+                      onClick={() => handleShippedToggle(row.picture_id, row.shipped)}
+                    >
+                      <TruckIcon className="w-5 h-5" />
                     </button>
                     <button
                       className=""
@@ -184,15 +250,28 @@ export function KoiInfoTable({ data, setEditingKoiId }: { data: KoiInfo[]; setEd
             >
               Next
             </button>
-          </div>
-        </div>
+          </div>        </div>
       </div>
+
+      <ConfirmationDialog
+        isOpen={confirmationDialog.isOpen}
+        title="Update Shipping Status"
+        message={
+          confirmationDialog.currentShippedStatus
+            ? "Are you sure you want to mark this koi as not shipped?"
+            : "Are you sure you want to mark this koi as shipped?"
+        }
+        onConfirm={confirmShippedToggle}
+        onCancel={() => setConfirmationDialog({ isOpen: false, pictureId: null, currentShippedStatus: false })}
+        confirmText={confirmationDialog.currentShippedStatus ? "Mark as Not Shipped" : "Mark as Shipped"}
+        variant="default"
+      />
     </div>
   );
 }
 
 
-const SalesCell = (jpy?: number, usd?: number) => {
+const SalesCell = (jpy?: number | null, usd?: number | null) => {
   if (!jpy && !usd) {
     return (
       <TableCell>
@@ -205,15 +284,15 @@ const SalesCell = (jpy?: number, usd?: number) => {
     <TableCell>
       <p className="text-green-600 dark:text-green-400 text-sm">
         
-        {jpy > 0 && (<span className="flex items-center gap-1">
+        {jpy && jpy > 0 && (<span className="flex items-center gap-1">
           <span
             className="w-3 h-3 rounded-full bg-[#BC002D]"
             aria-label="Red Ball"
           ></span>
-          ¥{jpy?.toLocaleString()}
+          ¥{jpy.toLocaleString()}
         </span>)}
 
-        {usd > 0 && (<span className="flex items-center gap-1">
+        {usd && usd > 0 && (<span className="flex items-center gap-1">
           <img
             src="https://flagcdn.com/w40/us.png"
             alt="US Flag"
