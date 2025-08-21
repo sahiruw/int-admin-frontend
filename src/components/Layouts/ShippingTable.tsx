@@ -131,6 +131,7 @@ export function DataTable({
   
 
   const totalsByGroup = useMemo(() => {
+    console.log("Calculating totals by group...");
     const groupTotals: Record<string, { numerator: number; denominator: number }> = {};
 
     data.forEach(row => {
@@ -153,7 +154,7 @@ export function DataTable({
       const { numerator, denominator } = groupTotals[group];
       result[group] = denominator !== 0 ? numerator / denominator : 0;
     }
-
+    console.log(result)
     return result;
   }, [data]);
 
@@ -299,7 +300,8 @@ export function DataTable({
                   </TableCell>
 
                   {input_columns?.map(({ key, Header, type }) => (
-                    <TableCell key={key} className="text-right">                      <input
+                    <TableCell key={key} className="text-right">                      
+                    <input
                         type={type}
                         value={row[key] || ""}
                         onChange={(e) => handleInputChange(row.picture_id, key, e.target.value)}
@@ -309,7 +311,8 @@ export function DataTable({
                         )}
                       />
                     </TableCell>
-                  ))}                  <TableCell className="text-right">
+                  ))}                  
+                  <TableCell className="text-right">
                     {(row.box_count && row.weight_of_box) ? (
                       <div className="flex flex-col text-right">
                         <p className=" text-dark dark:text-white">
@@ -329,12 +332,19 @@ export function DataTable({
                       onChange={(e) => handleInputChange(row.picture_id, "grouping", e.target.value)}
                       className="w-full text-right border border-gray-100 rounded-md p-2 "
                     />
-                  </TableCell>                  <TableCell className="text-right">
-                    {row.grouping && totalsByGroup[row.grouping] !== undefined && (
-                      <p className=" text-dark dark:text-white">
-                        {(totalsByGroup[row.grouping] * shippingCost).toFixed(2)}
-                      </p>
-                    )}
+                  </TableCell>                  
+                  <TableCell className="text-right">
+                    {row.grouping && totalsByGroup[row.grouping] !== undefined ? (
+                      (row.grouping && row.weight_of_box && row.box_count && row.pcs)
+                        ? (
+                          <p className=" text-dark dark:text-white">
+                            {(totalsByGroup[row.grouping] * shippingCost).toFixed(0)}
+                          </p>
+                        )
+                        : (
+                          <span>-</span>
+                        )
+                    ) : null}
                   </TableCell>
                 </TableRow>
               );
