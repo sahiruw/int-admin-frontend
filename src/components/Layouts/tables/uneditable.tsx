@@ -90,7 +90,21 @@ export function DataTable<T extends {}>({
   return (
     <div className="overflow-y-auto" style={{ maxHeight: maxHeight, overflowY: "auto" }}>
 
-      {label && <div className="text-2xl font-semibold text-primary dark:text-primary-dark p-4">{label}</div>}
+      <div
+        className={cn(
+          "text-2xl font-semibold p-4",
+          sortedData.every((row: any) => row.shipped === true)
+            ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+            : "text-primary dark:text-primary-dark"
+        )}
+      >
+        {label}
+        {sortedData.every((row: any) => row.shipped === true) && (
+          <span className="ml-2 px-2 py-1 rounded bg-green-200 text-green-800 dark:bg-green-800 dark:text-green-200 text-sm font-normal">
+            Shipped
+          </span>
+        )}
+      </div>
 
       <Table className="w-full table-fixed">
 

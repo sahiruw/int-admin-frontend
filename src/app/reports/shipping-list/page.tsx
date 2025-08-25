@@ -11,12 +11,16 @@ const page = () => {
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
-            const res = await fetch('/api/koi/shipping-list');
-            const data = await res.json();
-            let groupedData = groupAndSortShippingData(data);
-            
-            setDataWithDate(groupedData.filter(group => group[0].date));
-            setDataWithoutDate(groupedData.filter(group => !group[0].date));
+            try {
+                const res = await fetch('/api/koi/shipping-list');
+                const data = await res.json();
+                let groupedData = groupAndSortShippingData(data);
+
+                setDataWithDate(groupedData.filter(group => group[0].date));
+                setDataWithoutDate(groupedData.filter(group => !group[0].date));
+            } catch (error) {
+                console.error('Failed to fetch shipping list:', error);
+            }
             
             setLoading(false);
         }
