@@ -135,9 +135,9 @@ export function DataTable({
     const groupTotals: Record<string, { numerator: number; denominator: number }> = {};
 
     data.forEach(row => {
-      if (row.grouping && row.weight_of_box && row.box_count && row.pcs) {
+      if (row.grouping && row.pcs) {
         const group = row.grouping;
-        const weightSum = row.weight_of_box * row.box_count;
+        const weightSum = row.weight_of_box && row.box_count ? row.weight_of_box * row.box_count: 0;
         const pcs = row.pcs;
 
         if (!groupTotals[group]) {
@@ -335,15 +335,9 @@ export function DataTable({
                   </TableCell>                  
                   <TableCell className="text-right">
                     {row.grouping && totalsByGroup[row.grouping] !== undefined ? (
-                      (row.grouping && row.weight_of_box && row.box_count && row.pcs)
-                        ? (
-                          <p className=" text-dark dark:text-white">
-                            {(totalsByGroup[row.grouping] * shippingCost).toFixed(0)}
-                          </p>
-                        )
-                        : (
-                          <span>-</span>
-                        )
+                      <p className="text-dark dark:text-white">
+                        {`¥${(totalsByGroup[row.grouping] * shippingCost).toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+                      </p>
                     ) : null}
                   </TableCell>
                 </TableRow>
