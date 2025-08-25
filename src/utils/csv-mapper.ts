@@ -238,17 +238,20 @@ export class CSVMapper {
 
     // Get sales amounts from CSV (ignore commission columns from CSV)
     const salesJpy = this.parseNumeric(this.getRowValue(row, 'Sales_JPY', 'Sales', 'sales'));
-    const salesUsd = this.parseNumeric(this.getRowValue(row, 'Sales_USD', 'Sales ', 'Sales.1', 'sales_usd'));
+    const salesUsd = this.parseNumeric(this.getRowValue(row, 'Sales_USD', 'sales_usd'));
 
-    // Always use commission rate from database configuration
-    const commissionRate = this.lookupTables.configuration.commission;
+    const commJpy = this.parseNumeric(this.getRowValue(row, 'Comm_JPY', 'Comm', 'comm'));
+    const commUsd = this.parseNumeric(this.getRowValue(row, 'Comm_USD', 'comm_usd'));
+
+    // // Always use commission rate from database configuration
+    // const commissionRate = this.lookupTables.configuration.commission;
 
     // If we have sales data in JPY
     if (salesJpy > 0) {
       return {
         sale_price_jpy: salesJpy,
         sale_price_usd: null,
-        comm: commissionRate
+        comm: commJpy? commJpy/salesJpy : 0
       };
     }
 
@@ -257,7 +260,7 @@ export class CSVMapper {
       return {
         sale_price_jpy: null,
         sale_price_usd: salesUsd,
-        comm: commissionRate
+        comm: commUsd? commUsd/salesUsd : 0
       };
     }
 
@@ -265,7 +268,7 @@ export class CSVMapper {
     return {
       sale_price_jpy: null,
       sale_price_usd: null,
-      comm: commissionRate
+      comm: 0
     };
   }
 
