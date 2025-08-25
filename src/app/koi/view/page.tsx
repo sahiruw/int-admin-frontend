@@ -55,7 +55,6 @@ export default function Page() {
   }
     , [filters, data]);
 
-
   const resetFilters = () => {
     setFilters({});
     setFilteredData(data);
@@ -63,6 +62,27 @@ export default function Page() {
     setTimeout(() => {
       setIsReset(false);
     }, 10);
+  };
+
+  const refreshData = () => {
+    setLoading(true);
+    fetch('/api/koi', { next: { revalidate: 300 } })
+      .then((response) => response.json())
+      .then((data) => {
+        const formattedData = data.map((item: KoiInfo) => ({
+          ...item,
+          timestamp: new Date(item.timestamp),
+          shipped: item.shipped ? true : false,
+        }));
+        setData(formattedData);
+        setFilteredData(formattedData);
+      })
+      .catch((error) => {
+        console.error('Error fetching data:', error);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
   return (
@@ -115,7 +135,7 @@ export default function Page() {
 
         <Button variant="primary" shape={'rounded'} onClick={resetFilters} label='Reset' className='h-10 max-w-12' />
       </div>
-      <KoiInfoTable data={filteredData} setEditingKoiId={setEditingKoiId} />
+      <KoiInfoTable data={filteredData} setEditingKoiId={setEditingKoiId} onDataChange={refreshData} />
     </div>
   )
 }

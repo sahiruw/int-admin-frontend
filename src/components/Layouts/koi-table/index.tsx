@@ -17,12 +17,15 @@ import { KoiInfo } from "@/types/koi";
 import { toast } from "react-hot-toast";
 
 
-export function KoiInfoTable({ data, setEditingKoiId }: { data: KoiInfo[]; setEditingKoiId: (id: string | null) => void }) {
+export function KoiInfoTable({ data, setEditingKoiId, onDataChange }: { 
+  data: KoiInfo[]; 
+  setEditingKoiId: (id: string | null) => void;
+  onDataChange?: () => void;
+}) {
   const pageSizeOptions = [5, 10, 20, 50, 100];
 
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(pageSizeOptions[Math.ceil(pageSizeOptions.length / 2)]);
-  const [confirmationDialog, setConfirmationDialog] = useState<{
+  const [itemsPerPage, setItemsPerPage] = useState(pageSizeOptions[Math.ceil(pageSizeOptions.length / 2)]);  const [confirmationDialog, setConfirmationDialog] = useState<{
     isOpen: boolean;
     pictureId: string | null;
     currentShippedStatus: boolean;
@@ -30,6 +33,14 @@ export function KoiInfoTable({ data, setEditingKoiId }: { data: KoiInfo[]; setEd
     isOpen: false,
     pictureId: null,
     currentShippedStatus: false,
+  });
+  
+  const [deleteDialog, setDeleteDialog] = useState<{
+    isOpen: boolean;
+    pictureId: string | null;
+  }>({
+    isOpen: false,
+    pictureId: null,
   });
 
   const totalPages = Math.ceil(data.length / itemsPerPage);
@@ -47,7 +58,6 @@ export function KoiInfoTable({ data, setEditingKoiId }: { data: KoiInfo[]; setEd
       currentShippedStatus: currentStatus,
     });
   };
-
   const confirmShippedToggle = async () => {
     if (!confirmationDialog.pictureId) return;
 
@@ -81,6 +91,49 @@ export function KoiInfoTable({ data, setEditingKoiId }: { data: KoiInfo[]; setEd
       toast.error('Failed to update shipping status');
     } finally {
       setConfirmationDialog({ isOpen: false, pictureId: null, currentShippedStatus: false });
+    }
+  };
+
+  const handleDeleteKoi = (pictureId: string) => {
+    setDeleteDialog({
+      isOpen: true,
+      pictureId,
+    });
+  };
+
+  const confirmDeleteKoi = async () => {
+    if (!deleteDialog.pictureId) return;
+
+    try {
+      const response = await fetch('/api/koi', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          picture_id: deleteDialog.pictureId,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete koi');
+      }
+
+      // Show success message
+      toast.success('Koi deleted successfully');
+      
+      // Refresh data if callback is provided
+      if (onDataChange) {
+        onDataChange();
+      } else {
+        window.location.reload();
+      }
+      
+    } catch (error) {
+      console.error('Error deleting koi:', error);
+      toast.error('Failed to delete koi');
+    } finally {
+      setDeleteDialog({ isOpen: false, pictureId: null });
     }
   };
 
@@ -194,10 +247,10 @@ export function KoiInfoTable({ data, setEditingKoiId }: { data: KoiInfo[]; setEd
                       onClick={() => handleShippedToggle(row.picture_id, row.shipped)}
                     >
                       <TruckIcon className="w-5 h-5" />
-                    </button>
-                    <button
-                      className=""
+                    </button>                    <button
+                      className="text-red-500 hover:text-red-700 transition-colors"
                       title="Delete"
+                      onClick={() => handleDeleteKoi(row.picture_id)}
                     >
                       <TrashIcon className="w-5 h-5" />
                     </button>
@@ -251,9 +304,7 @@ export function KoiInfoTable({ data, setEditingKoiId }: { data: KoiInfo[]; setEd
               Next
             </button>
           </div>        </div>
-      </div>
-
-      <ConfirmationDialog
+      </div>      <ConfirmationDialog
         isOpen={confirmationDialog.isOpen}
         title="Update Shipping Status"
         message={
@@ -265,6 +316,16 @@ export function KoiInfoTable({ data, setEditingKoiId }: { data: KoiInfo[]; setEd
         onCancel={() => setConfirmationDialog({ isOpen: false, pictureId: null, currentShippedStatus: false })}
         confirmText={confirmationDialog.currentShippedStatus ? "Mark as Not Shipped" : "Mark as Shipped"}
         variant="default"
+      />
+
+      <ConfirmationDialog
+        isOpen={deleteDialog.isOpen}
+        title="Delete Koi"
+        message="Are you sure you want to delete this koi? This action cannot be undone."
+        onConfirm={confirmDeleteKoi}
+        onCancel={() => setDeleteDialog({ isOpen: false, pictureId: null })}
+        confirmText="Delete"
+        variant="destructive"
       />
     </div>
   );

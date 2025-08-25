@@ -135,13 +135,10 @@ export async function POST(req: Request) {
   });
 
   // console.log("Processed payload with mapped IDs:", payload[0]);
-
   const { data, error } = await supabaseClient.from("koiinfo").upsert(payload);
 
-  if (error || configError) {
-    let errMsg = error
-      ? error.message
-      : configError?.message || "Unknown error";
+  if (error) {
+    let errMsg = error.message;
     console.log("Error", errMsg);
 
     // check if the error is due to null values
@@ -167,14 +164,54 @@ export async function POST(req: Request) {
       }
     );
   }
-  clearCacheMatchingKeyPattern("koi_*");
-  return new Response(
+  clearCacheMatchingKeyPattern("koi_*");  return new Response(
     JSON.stringify({
       message: "Koi added successfully",
       data,
     }),
     {
       status: 201,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+}
+
+export async function DELETE(req: Request) {
+  const supabaseClient = await createClient();
+
+  const body = await req.text();
+  const { picture_id } = JSON.parse(body);
+
+  const { data, error } = await supabaseClient
+    .from("koiinfo")
+    .delete()
+    .eq("picture_id", picture_id);
+
+  if (error) {
+    return new Response(
+      JSON.stringify({
+        message: "An error occurred while deleting koi",
+        error: error.message,
+      }),
+      {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  }
+  clearCacheMatchingKeyPattern("koi_*");
+
+  return new Response(
+    JSON.stringify({
+      message: "Koi deleted successfully",
+      data,
+    }),
+    {
+      status: 200,
       headers: {
         "Content-Type": "application/json",
       },
