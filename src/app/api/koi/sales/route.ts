@@ -15,8 +15,8 @@ export async function GET(req: Request) {
       .from("koi_sales_view")
       .select("*")
       .range(offset, offset + limit - 1)
-      .gte("date", startDate)
-      .lte("date", endDate);
+      .gte("purchase_date", startDate)
+      .lte("purchase_date", endDate);
 
     if (error) {
       return new Response(

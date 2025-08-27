@@ -46,11 +46,18 @@ const Page = () => {
 
   const fetchSales = async (start: string, end: string) => {
     setLoading(true);
-    const query = `/api/koi/sales?start=${start}&end=${end}`;
-    const res = await fetch(query);
-    const data = await res.json();
-    setLoading(false);
-    return data;
+    try {
+      const query = `/api/koi/sales?start=${start}&end=${end}`;
+      const res = await fetch(query);
+      const data = await res.json();
+      console.log(data)
+      return data;
+    } catch (error) {
+      console.error('Failed to fetch sales:', error);
+      return [];
+    } finally {
+      setLoading(false);
+    }
   };
 
   const applyDateRange = async (rangeInText: string) => {
