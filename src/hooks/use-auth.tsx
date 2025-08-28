@@ -27,42 +27,55 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     console.log('AuthProvider mounted')
-    // Get initial session
-    const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session?.user) {
-        setSupabaseUser(session.user)
-        let userM =  await fetchUserProfile(session.user.id)
 
-        while(!userM) {
-          console.log('User profile not found, retrying fetch...')
-          await new Promise(res => setTimeout(res, 1000)) // wait for 1 second before retrying
-          userM =  await fetchUserProfile(session.user.id)
+    const loadUserProfile = async (userId: string) => {
+      console.log('Fetching user profile for userId:', userId)
+      let attempts = 0
+      let profile: User | null = null
+
+      while (!profile && attempts < 5) {
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('id', userId)
+          .single()
+
+        if (error) {
+          console.warn('Error fetching profile (attempt', attempts + 1, '):', error.message)
+        } else if (data) {
+          profile = data as User
         }
-        setUser(userM)
-        console.log('User profile fetched and set:', userM)
+
+        if (!profile) {
+          attempts++
+          await new Promise(res => setTimeout(res, 1000)) // wait before retry
+        }
+      }
+
+      if (profile) {
+        setUser(profile)
+        console.log('User profile set:', profile)
+      } else {
+        console.error('Failed to fetch user profile after retries')
+      }
+    }
+
+    const init = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        setSupabaseUser(user)
+        await loadUserProfile(user.id)
       }
       setLoading(false)
     }
 
-    getSession()
+    init()
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      async (_event, session) => {
         if (session?.user) {
           setSupabaseUser(session.user)
-          let userM =  await fetchUserProfile(session.user.id)
-          
-          while(!userM) {
-            console.log('User profile not found, retrying fetch...')
-            await new Promise(res => setTimeout(res, 1000)) // wait for 1 second before retrying
-            userM =  await fetchUserProfile(session.user.id)
-          }
-          setUser(userM)
-          console.log('User profile fetched and set:', userM)
-
-
+          await loadUserProfile(session.user.id)
         } else {
           setSupabaseUser(null)
           setUser(null)
@@ -72,91 +85,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     )
 
     return () => subscription.unsubscribe()
-  }, [supabase.auth])
+  }, [supabase])
 
-  const fetchUserProfile = async (userId: string) => {
-    console.log('Fetching user profile for userId:', userId)
-    try {
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', userId)
-        .single()
-
-      if (error) {
-        console.log('Error details:', error)
-        console.error('Error fetching user profile:', error)
-        return
-      }
-
-      if (data) {
-        return data
-      }
-    } catch (error) {
-      console.error('Error fetching user profile:', error)
-      return null
-    }
-  }
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-
-    if (error) {
-      return { error: error.message }
-    }
-
-    return {}
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    return error ? { error: error.message } : {}
   }
 
   const signUp = async (email: string, password: string, fullName: string, role: UserRole = 'assistant') => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        data: {
-          full_name: fullName,
-          role: role
-        }
-      }
+      options: { data: { full_name: fullName, role } }
     })
-
-    if (error) {
-      return { error: error.message }
-    }
-
-    return {}
+    return error ? { error: error.message } : {}
   }
 
   const signOut = async () => {
     await supabase.auth.signOut()
     setUser(null)
     setSupabaseUser(null)
-    // Redirect to login page
     window.location.href = '/auth/login'
   }
 
   const hasPermission = (resource: ResourceType, action: ActionType): boolean => {
     if (!user) return false
-    
-    const resourcePermissions = ACCESS_MATRIX[resource]
-    if (!resourcePermissions) return false
-    
-    const actionPermissions = resourcePermissions[action]
-    if (!actionPermissions) return false
-    
-    return actionPermissions[user.role] || false
+    return ACCESS_MATRIX[resource]?.[action]?.[user.role] || false
   }
 
-  const isAdmin = (): boolean => {
-    return user?.role === 'admin'
-  }
+  const isAdmin = (): boolean => user?.role === 'admin'
+  const isAssistant = (): boolean => user?.role === 'assistant'
 
-  const isAssistant = (): boolean => {
-    return user?.role === 'assistant'
-  }
-  const value = {
+  const value: AuthContextType = {
     user,
     supabaseUser,
     loading,
@@ -173,8 +133,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export const useAuth = () => {
   const context = useContext(AuthContext)
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider')
-  }
+  if (!context) throw new Error('useAuth must be used within an AuthProvider')
   return context
 }
