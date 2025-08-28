@@ -4,9 +4,11 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/use-auth'
 import { createClient } from '@/utils/supabase/client'
 import { Eye, EyeOff } from 'lucide-react'
+import { AvatarUpload } from '@/components/FormElements/avatar-upload'
 
 export default function ProfilePage() {
   const [fullName, setFullName] = useState('')
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -17,16 +19,31 @@ export default function ProfilePage() {
   const [passwordLoading, setPasswordLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
-  
-  const { user } = useAuth()
+    const { user } = useAuth()
   const supabase = createClient()
-
+  
   useEffect(() => {
-    if (user) {
-      setFullName(user.full_name || '')
-    }
+    const fetchUserProfile = async () => {
+      if (user) {
+        setFullName(user.full_name || '')
+        
+        // Get complete profile info from the database
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('avatar_url, full_name')
+          .eq('id', user.id)
+          .single()
+        
+        if (data && !error) {
+          setAvatarUrl(data.avatar_url)
+          if (data.full_name && data.full_name !== user.full_name) {
+            setFullName(data.full_name)
+          }
+        }
+      }
+    }    
+    fetchUserProfile()
   }, [user])
-
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -36,10 +53,16 @@ export default function ProfilePage() {
     try {
       const { error } = await supabase
         .from('user_profiles')
-        .update({ full_name: fullName })
+        .update({ 
+          full_name: fullName,
+          avatar_url: avatarUrl
+        })
         .eq('id', user?.id)
 
       if (error) throw error
+      
+      // Update the user context with new information
+      const { data: updatedUser } = await supabase.auth.getUser()
       
       setMessage('Profile updated successfully!')
     } catch (err: any) {
@@ -47,6 +70,11 @@ export default function ProfilePage() {
     } finally {
       setLoading(false)
     }
+  }
+  
+  // Handle avatar change from the AvatarUpload component
+  const handleAvatarChange = (url: string) => {
+    setAvatarUrl(url)
   }
 
   const handlePasswordUpdate = async (e: React.FormEvent) => {
@@ -114,8 +142,14 @@ export default function ProfilePage() {
             Profile Information
           </h3>
         </div>
-        
-        <form onSubmit={handleProfileUpdate} className="p-6.5">
+          <form onSubmit={handleProfileUpdate} className="p-6.5">
+          <div className="mb-6 flex justify-center">
+            <AvatarUpload 
+              currentAvatarUrl={avatarUrl} 
+              onAvatarChange={handleAvatarChange} 
+            />
+          </div>
+          
           <div className="mb-4.5">
             <label className="mb-2.5 block text-black dark:text-white">
               Email <span className="text-meta-1">*</span>

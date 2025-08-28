@@ -42,17 +42,19 @@ export function UserInfo() {
   return (
     <Dropdown isOpen={isOpen} setIsOpen={setIsOpen}>
       <DropdownTrigger className="rounded align-middle outline-none ring-primary ring-offset-2 focus-visible:ring-1 dark:ring-offset-gray-dark">
-        <span className="sr-only">My Account</span>        <figure className="flex items-center gap-3">
+        <span className="sr-only">My Account</span>
+        <figure className="flex items-center gap-3">
           <Image
             src={avatarUrl}
-            className="size-12"
+            className="size-12 rounded-full"
             alt={`Avatar of ${displayName}`}
             role="presentation"
-            width={200}
-            height={200}
+            width={48}
+            height={48}
           />
-          <figcaption className="flex  items-center font-medium text-dark dark:text-dark-6 max-[1024px]:sr-only">
-            <div className="flex items-start  flex-col mr-2"><span className="block">{displayName}</span>
+          <figcaption className="flex items-center font-medium text-dark dark:text-dark-6 max-[1024px]:sr-only">
+            <div className="flex items-start flex-col mr-2">
+              <span className="block">{displayName}</span>
               <span className="block text-gray-6 dark:text-dark-6 text-xs">{displayRole}</span>
             </div>
             <ChevronUpIcon
@@ -74,7 +76,7 @@ export function UserInfo() {
         <h2 className="sr-only">User information</h2>        <figure className="flex items-center gap-2.5 px-5 py-3.5">
           <Image
             src={avatarUrl}
-            className="size-12"
+            className="size-12 rounded-full"
             alt={`Avatar for ${displayName}`}
             role="presentation"
             width={200}
