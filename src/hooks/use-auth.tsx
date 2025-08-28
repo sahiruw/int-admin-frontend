@@ -32,7 +32,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { data: { session } } = await supabase.auth.getSession()
       if (session?.user) {
         setSupabaseUser(session.user)
-        await fetchUserProfile(session.user.id)
+        let userM =  await fetchUserProfile(session.user.id)
+
+        while(!userM) {
+          console.log('User profile not found, retrying fetch...')
+          await new Promise(res => setTimeout(res, 1000)) // wait for 1 second before retrying
+          userM =  await fetchUserProfile(session.user.id)
+        }
+        setUser(userM)
+        console.log('User profile fetched and set:', userM)
+
+
       }
       setLoading(false)
     }
@@ -44,7 +54,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       async (event, session) => {
         if (session?.user) {
           setSupabaseUser(session.user)
-          await fetchUserProfile(session.user.id)
+          let userM =  await fetchUserProfile(session.user.id)
+          
+          while(!userM) {
+            console.log('User profile not found, retrying fetch...')
+            await new Promise(res => setTimeout(res, 1000)) // wait for 1 second before retrying
+            userM =  await fetchUserProfile(session.user.id)
+          }
+          setUser(userM)
+          console.log('User profile fetched and set:', userM)
+
+
         } else {
           setSupabaseUser(null)
           setUser(null)
@@ -57,6 +77,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [supabase.auth])
 
   const fetchUserProfile = async (userId: string) => {
+    console.log('Fetching user profile for userId:', userId)
     try {
       const { data, error } = await supabase
         .from('user_profiles')
@@ -70,7 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (data) {
-        setUser(data)
+        return data
       }
     } catch (error) {
       console.error('Error fetching user profile:', error)
