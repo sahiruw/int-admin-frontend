@@ -26,6 +26,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const supabase = createClient()
 
   useEffect(() => {
+    console.log('AuthProvider mounted')
     // Get initial session
     const getSession = async () => {
       const { data: { session } } = await supabase.auth.getSession()
@@ -53,7 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     )
 
     return () => subscription.unsubscribe()
-  }, [])
+  }, [supabase.auth])
 
   const fetchUserProfile = async (userId: string) => {
     try {
