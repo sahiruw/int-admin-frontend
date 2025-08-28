@@ -41,8 +41,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         setUser(userM)
         console.log('User profile fetched and set:', userM)
-
-
       }
       setLoading(false)
     }
@@ -86,6 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .single()
 
       if (error) {
+        console.log('Error details:', error)
         console.error('Error fetching user profile:', error)
         return
       }
@@ -95,6 +94,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (error) {
       console.error('Error fetching user profile:', error)
+      return null
     }
   }
   const signIn = async (email: string, password: string) => {
