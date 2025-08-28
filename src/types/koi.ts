@@ -1,9 +1,9 @@
 export type box = {
   breeder_id: number;
   size: string;
-  length_cm: number;
-  width_cm: number;
-  thickness_cm: number;
+  length_cm: number | null | undefined;
+  width_cm: number | null | undefined;
+  thickness_cm: number | null | undefined;
   breeder: Breeder;
 }
 
