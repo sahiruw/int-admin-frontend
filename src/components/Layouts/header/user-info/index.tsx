@@ -46,12 +46,13 @@ export function UserInfo() {
         <figure className="flex items-center gap-3">
           <Image
             src={avatarUrl}
-            className="size-12 rounded-full"
             alt={`Avatar of ${displayName}`}
             role="presentation"
             width={48}
             height={48}
+            className="w-12 h-12 rounded-full object-cover"
           />
+
           <figcaption className="flex items-center font-medium text-dark dark:text-dark-6 max-[1024px]:sr-only">
             <div className="flex items-start flex-col mr-2">
               <span className="block">{displayName}</span>
