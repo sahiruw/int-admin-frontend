@@ -7,6 +7,7 @@ import { User, UserRole, ACCESS_MATRIX, ResourceType, ActionType } from '@/types
 
 interface AuthContextType {
   user: User | null
+  setUser: (user: User | null) => void
   supabaseUser: SupabaseUser | null
   loading: boolean
   signIn: (email: string, password: string) => Promise<{ error?: string }>
@@ -117,7 +118,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isAssistant = (): boolean => user?.role === 'assistant'
 
   const value: AuthContextType = {
-    user,
+    user, setUser,
     supabaseUser,
     loading,
     signIn,

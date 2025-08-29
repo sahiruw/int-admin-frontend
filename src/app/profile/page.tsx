@@ -19,7 +19,7 @@ export default function ProfilePage() {
   const [passwordLoading, setPasswordLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
-    const { user } = useAuth()
+    const { user, setUser } = useAuth()
   const supabase = createClient()
   
   useEffect(() => {
@@ -28,22 +28,22 @@ export default function ProfilePage() {
         setFullName(user.full_name || '')
         
         // Get complete profile info from the database
-        const { data, error } = await supabase
-          .from('user_profiles')
-          .select('avatar_url, full_name')
-          .eq('id', user.id)
-          .single()
-        
-        if (data && !error) {
-          setAvatarUrl(data.avatar_url)
-          if (data.full_name && data.full_name !== user.full_name) {
-            setFullName(data.full_name)
-          }
+        // const { data, error } = await supabase
+        //   .from('user_profiles')
+        //   .select('avatar_url, full_name')
+        //   .eq('id', user.id)
+        //   .single()
+
+          setAvatarUrl(user.avatar_url ?? null)
+          // if (data.full_name && data.full_name !== user.full_name) {
+          //   setFullName(data.full_name)
+          // }
         }
-      }
+      
     }    
     fetchUserProfile()
   }, [user])
+
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -75,6 +75,9 @@ export default function ProfilePage() {
   // Handle avatar change from the AvatarUpload component
   const handleAvatarChange = (url: string) => {
     setAvatarUrl(url)
+    if (user) {
+      setUser({ ...user, avatar_url: url })
+    }
   }
 
   const handlePasswordUpdate = async (e: React.FormEvent) => {
