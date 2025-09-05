@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { createClient } from '@/utils/supabase/client'
 import { Eye, EyeOff } from 'lucide-react'
 import { AvatarUpload } from '@/components/FormElements/avatar-upload'
+import toast from 'react-hot-toast'
 
 export default function ProfilePage() {
   const [fullName, setFullName] = useState('')
@@ -17,9 +18,7 @@ export default function ProfilePage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [passwordLoading, setPasswordLoading] = useState(false)
-  const [message, setMessage] = useState('')
-  const [error, setError] = useState('')
-    const { user, setUser } = useAuth()
+  const { user, setUser } = useAuth()
   const supabase = createClient()
   
   useEffect(() => {
@@ -43,12 +42,9 @@ export default function ProfilePage() {
     }    
     fetchUserProfile()
   }, [user])
-
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setError('')
-    setMessage('')
 
     try {
       const { error } = await supabase
@@ -61,16 +57,16 @@ export default function ProfilePage() {
 
       if (error) throw error
 
-      if (fullName){
+      if (fullName && user){
         setUser({ ...user, full_name: fullName })
       }
       
       // Update the user context with new information
       const { data: updatedUser } = await supabase.auth.getUser()
       
-      setMessage('Profile updated successfully!')
+      toast.success('Profile updated successfully!')
     } catch (err: any) {
-      setError(err.message)
+      toast.error(err.message || 'Failed to update profile')
     } finally {
       setLoading(false)
     }
@@ -83,21 +79,18 @@ export default function ProfilePage() {
       setUser({ ...user, avatar_url: url })
     }
   }
-
   const handlePasswordUpdate = async (e: React.FormEvent) => {
     e.preventDefault()
     setPasswordLoading(true)
-    setError('')
-    setMessage('')
 
     if (newPassword !== confirmPassword) {
-      setError('New passwords do not match')
+      toast.error('New passwords do not match')
       setPasswordLoading(false)
       return
     }
 
     if (newPassword.length < 6) {
-      setError('New password must be at least 6 characters long')
+      toast.error('New password must be at least 6 characters long')
       setPasswordLoading(false)
       return
     }
@@ -110,7 +103,7 @@ export default function ProfilePage() {
       })
 
       if (signInError) {
-        setError('Current password is incorrect')
+        toast.error('Current password is incorrect')
         setPasswordLoading(false)
         return
       }
@@ -122,12 +115,12 @@ export default function ProfilePage() {
 
       if (error) throw error
 
-      setMessage('Password updated successfully!')
+      toast.success('Password updated successfully!')
       setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
     } catch (err: any) {
-      setError(err.message)
+      toast.error(err.message || 'Failed to update password')
     } finally {
       setPasswordLoading(false)
     }
@@ -307,20 +300,7 @@ export default function ProfilePage() {
           >
             {passwordLoading ? 'Updating...' : 'Update Password'}
           </button>
-        </form>
-      </div>
-
-      {(message || error) && (
-        <div className={`rounded-md p-4 ${
-          error ? 'bg-red-50 dark:bg-red-900/20' : 'bg-green-50 dark:bg-green-900/20'
-        }`}>
-          <div className={`text-sm ${
-            error ? 'text-red-700 dark:text-red-400' : 'text-green-700 dark:text-green-400'
-          }`}>
-            {error || message}
-          </div>
-        </div>
-      )}
+        </form>      </div>
     </div>
   )
 }
