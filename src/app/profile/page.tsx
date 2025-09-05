@@ -60,6 +60,10 @@ export default function ProfilePage() {
         .eq('id', user?.id)
 
       if (error) throw error
+
+      if (fullName){
+        setUser({ ...user, full_name: fullName })
+      }
       
       // Update the user context with new information
       const { data: updatedUser } = await supabase.auth.getUser()

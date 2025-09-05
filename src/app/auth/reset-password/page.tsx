@@ -17,50 +17,49 @@ function ResetPasswordForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createClient()
-
   useEffect(() => {
-    // Check if we have the necessary tokens from the URL
-    const access_token = searchParams.get('access_token')
-    const refresh_token = searchParams.get('refresh_token')
+    // Check if we have the necessary code from the URL
+    const code = searchParams.get('code')
     
-    if (!access_token || !refresh_token) {
+    if (!code) {
       setError('Invalid reset link. Please request a new password reset.')
     }
   }, [searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
-    setSuccess('')
+  e.preventDefault()
+  setLoading(true)
+  setError('')
+  setSuccess('')
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match')
-      setLoading(false)
-      return
-    }
-
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters long')
-      setLoading(false)
-      return
-    }
-
-    const { error } = await supabase.auth.updateUser({
-      password: password
-    })
-
-    if (error) {
-      setError(error.message)
-    } else {
-      setSuccess('Password updated successfully! Redirecting to login...')
-      setTimeout(() => {
-        router.push('/auth/login')
-      }, 2000)
-    }
-    
+  if (password !== confirmPassword) {
+    setError('Passwords do not match')
     setLoading(false)
+    return
   }
+
+  if (password.length < 6) {
+    setError('Password must be at least 6 characters long')
+    setLoading(false)
+    return
+  }
+
+  // ✅ Just update the password (Supabase already set a temp session from the reset link)
+  const { error } = await supabase.auth.updateUser({ password })
+
+  if (error) {
+    setError(error.message)
+  } else {
+    setSuccess('Password updated successfully! Redirecting to login...')
+    setTimeout(() => {
+      router.push('/auth/login')
+    }, 2000)
+  }
+
+  setLoading(false)
+}
+
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
