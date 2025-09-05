@@ -5,6 +5,8 @@ import { useAuth } from '@/hooks/use-auth'
 import { PermissionGuard } from '@/components/PermissionGuard'
 import { User, UserRole } from '@/types/auth'
 import { createClient } from '@/utils/supabase/client'
+import toast from 'react-hot-toast'
+import ConfirmationDialog from '@/components/ui/ConfirmationDialog'
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([])
@@ -18,6 +20,23 @@ export default function UsersPage() {
     role: 'assistant' as UserRole
   })
   const [registerLoading, setRegisterLoading] = useState(false)
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    confirmLabel: string;
+    cancelLabel: string;
+    onConfirm: () => void;
+    type?: 'danger' | 'warning' | 'info';
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    confirmLabel: 'Confirm',
+    cancelLabel: 'Cancel',
+    onConfirm: () => {},
+    type: 'danger'
+  })
   const { user: currentUser } = useAuth()
   const supabase = createClient()
 
@@ -42,60 +61,112 @@ export default function UsersPage() {
       setLoading(false)
     }
   }
-
   const updateUserRole = async (userId: string, newRole: UserRole) => {
-    try {
-      const { error } = await supabase
-        .from('user_profiles')
-        .update({ role: newRole })
-        .eq('id', userId)
+    // Find the user to get their name for the confirmation dialog
+    const user = users.find(u => u.id === userId);
+    if (!user) return;
+    
+    const newRoleDisplay = newRole === 'admin' ? 'Administrator' : 'Assistant';
+    
+    setConfirmDialog({
+      isOpen: true,
+      title: `Change User Role`,
+      message: `Are you sure you want to change ${user.full_name || user.email}'s role to ${newRoleDisplay}?`,
+      confirmLabel: 'Change Role',
+      cancelLabel: 'Cancel',
+      type: 'warning',
+      onConfirm: async () => {
+        // Close dialog first
+        setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+        
+        // Show loading toast
+        const toastId = toast.loading(`Updating user role...`);
+        
+        try {
+          const { error } = await supabase
+            .from('user_profiles')
+            .update({ role: newRole })
+            .eq('id', userId)
 
-      if (error) throw error
-      
-      setUsers(users.map(user => 
-        user.id === userId ? { ...user, role: newRole } : user
-      ))
-    } catch (err: any) {
-      setError(err.message)
-    }
-  }  
+          if (error) throw error
+          
+          setUsers(users.map(u => 
+            u.id === userId ? { ...u, role: newRole } : u
+          ))
+          
+          // Show success toast
+          toast.success(`User role updated to ${newRoleDisplay}`, { id: toastId });
+        } catch (err: any) {
+          // Show error toast
+          toast.error(`Failed to update role: ${err.message}`, { id: toastId });
+          setError(err.message);
+        }
+      }
+    });  }
   
   const deleteUser = async (userId: string) => {
-    if (!confirm('Are you sure you want to delete this user?')) return
+    // Find the user to get their name for the confirmation dialog
+    const user = users.find(u => u.id === userId);
+    if (!user) return;
+    
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Delete User',
+      message: `Are you sure you want to delete ${user.full_name || user.email}? This action cannot be undone.`,
+      confirmLabel: 'Delete User',
+      cancelLabel: 'Cancel',
+      type: 'danger',
+      onConfirm: async () => {
+        // Close dialog first
+        setConfirmDialog(prev => ({ ...prev, isOpen: false }));
+        
+        // Show loading toast
+        const toastId = toast.loading(`Deleting user...`);
+        
+        try {
+          // First, disable the auth user
+          const disableResponse = await fetch('/api/users/disable', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ userId }),
+          })
 
-    try {
-      // First, disable the auth user
-      const disableResponse = await fetch('/api/users/disable', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ userId }),
-      })
+          const disableData = await disableResponse.json()
+          
+          if (!disableResponse.ok) {
+            throw new Error(disableData.message || 'Failed to disable user account')
+          }
+          
+          // Then delete the user profile
+          const { error } = await supabase
+            .from('user_profiles')
+            .delete()
+            .eq('id', userId)
 
-      const disableData = await disableResponse.json()
-      
-      if (!disableResponse.ok) {
-        throw new Error(disableData.message || 'Failed to disable user account')
+          if (error) throw error
+          
+          setUsers(users.filter(user => user.id !== userId))
+          
+          // Show success toast
+          toast.success(`User deleted successfully`, { id: toastId });
+        } catch (err: any) {
+          // Show error toast
+          toast.error(`Failed to delete user: ${err.message}`, { id: toastId });
+          setError(err.message);
+        }
       }
-      
-      // Then delete the user profile
-      const { error } = await supabase
-        .from('user_profiles')
-        .delete()
-        .eq('id', userId)
-
-      if (error) throw error
-      
-      setUsers(users.filter(user => user.id !== userId))
-    } catch (err: any) {
-      setError(err.message)
-    }
-  }
+    });
+  }  
+  
   const registerUser = async (e: React.FormEvent) => {
     e.preventDefault()
     setRegisterLoading(true)
     setError('')
+
+    // Show loading toast
+    const toastId = toast.loading(`Creating new user account...`);
 
     try {
       const response = await fetch('/api/users', {
@@ -110,12 +181,17 @@ export default function UsersPage() {
 
       if (!response.ok) {
         // Handle specific error cases
+        let errorMessage = 'Failed to create user';
         if (data.instruction) {
-          setError(`${data.message}: ${data.instruction}`)
-        } else {
-          setError(data.message || 'Failed to create user')
+          errorMessage = `${data.message}: ${data.instruction}`;
+        } else if (data.message) {
+          errorMessage = data.message;
         }
-        return
+        
+        // Show error toast
+        toast.error(errorMessage, { id: toastId });
+        setError(errorMessage);
+        return;
       }
 
       // Success case
@@ -130,7 +206,12 @@ export default function UsersPage() {
       
       // Clear any previous errors
       setError('')
+      
+      // Show success toast
+      toast.success(`User ${data.data.full_name || data.data.email} created successfully!`, { id: toastId });
     } catch (err: any) {
+      // Show error toast
+      toast.error(`Failed to create user: ${err.message}`, { id: toastId });
       setError(err.message)
     } finally {
       setRegisterLoading(false)
@@ -356,8 +437,19 @@ export default function UsersPage() {
               </div>
             </form>
           </div>
-        </div>
-      )}
+        </div>      )}
+      
+      {/* Confirmation Dialog */}
+      <ConfirmationDialog
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        confirmLabel={confirmDialog.confirmLabel}
+        cancelLabel={confirmDialog.cancelLabel}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog(prev => ({ ...prev, isOpen: false }))}
+        type={confirmDialog.type}
+      />
     </PermissionGuard>
   )
 }

@@ -83,6 +83,8 @@ export async function POST(req: Request) {
       let attempt = 0;
       let profileCreated = false;
 
+      const supabaseClient = await createClient();
+
       while (attempt < maxRetries && !profileCreated) {
         const { data: existingProfile, error: fetchError } = await supabaseClient
           .from("user_profiles")
@@ -113,7 +115,7 @@ export async function POST(req: Request) {
         );
       }
       // Now update the user profile with the correct role using our server client
-      const supabaseClient = await createClient();
+      // const supabaseClient = await createClient();
       const { data: profileData, error: profileError } = await supabaseClient
         .from("user_profiles")
         .update({ role, full_name })
