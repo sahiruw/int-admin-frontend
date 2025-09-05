@@ -20,12 +20,12 @@ export default function ProfilePage() {
   const [passwordLoading, setPasswordLoading] = useState(false)
   const { user, setUser } = useAuth()
   const supabase = createClient()
-  
+
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (user) {
         setFullName(user.full_name || '')
-        
+
         // Get complete profile info from the database
         // const { data, error } = await supabase
         //   .from('user_profiles')
@@ -33,13 +33,13 @@ export default function ProfilePage() {
         //   .eq('id', user.id)
         //   .single()
 
-          setAvatarUrl(user.avatar_url ?? null)
-          // if (data.full_name && data.full_name !== user.full_name) {
-          //   setFullName(data.full_name)
-          // }
-        }
-      
-    }    
+        setAvatarUrl(user.avatar_url ?? null)
+        // if (data.full_name && data.full_name !== user.full_name) {
+        //   setFullName(data.full_name)
+        // }
+      }
+
+    }
     fetchUserProfile()
   }, [user])
   const handleProfileUpdate = async (e: React.FormEvent) => {
@@ -49,7 +49,7 @@ export default function ProfilePage() {
     try {
       const { error } = await supabase
         .from('user_profiles')
-        .update({ 
+        .update({
           full_name: fullName,
           avatar_url: avatarUrl
         })
@@ -57,13 +57,13 @@ export default function ProfilePage() {
 
       if (error) throw error
 
-      if (fullName && user){
+      if (fullName && user) {
         setUser({ ...user, full_name: fullName })
       }
-      
+
       // Update the user context with new information
       const { data: updatedUser } = await supabase.auth.getUser()
-      
+
       toast.success('Profile updated successfully!')
     } catch (err: any) {
       toast.error(err.message || 'Failed to update profile')
@@ -71,7 +71,7 @@ export default function ProfilePage() {
       setLoading(false)
     }
   }
-  
+
   // Handle avatar change from the AvatarUpload component
   const handleAvatarChange = (url: string) => {
     setAvatarUrl(url)
@@ -109,19 +109,22 @@ export default function ProfilePage() {
       }
 
       // Update password
-      const { error } = await supabase.auth.updateUser({
+      supabase.auth.updateUser({
         password: newPassword
       })
 
-      if (error) throw error
 
       toast.success('Password updated successfully!')
       setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
+
+
     } catch (err: any) {
       toast.error(err.message || 'Failed to update password')
-    } finally {
+      setPasswordLoading(false)
+    }
+    finally {
       setPasswordLoading(false)
     }
   }
@@ -142,14 +145,14 @@ export default function ProfilePage() {
             Profile Information
           </h3>
         </div>
-          <form onSubmit={handleProfileUpdate} className="p-6.5">
+        <form onSubmit={handleProfileUpdate} className="p-6.5">
           <div className="mb-6 flex justify-center">
-            <AvatarUpload 
-              currentAvatarUrl={avatarUrl} 
-              onAvatarChange={handleAvatarChange} 
+            <AvatarUpload
+              currentAvatarUrl={avatarUrl}
+              onAvatarChange={handleAvatarChange}
             />
           </div>
-          
+
           <div className="mb-4.5">
             <label className="mb-2.5 block text-black dark:text-white">
               Email <span className="text-meta-1">*</span>
@@ -209,7 +212,7 @@ export default function ProfilePage() {
             Change Password
           </h3>
         </div>
-        
+
         <form onSubmit={handlePasswordUpdate} className="p-6.5">
           <div className="mb-4.5">
             <label className="mb-2.5 block text-black dark:text-white">
