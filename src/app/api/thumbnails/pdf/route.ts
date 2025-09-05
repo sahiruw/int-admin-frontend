@@ -12,8 +12,8 @@ export async function POST(req: NextRequest) {
         try {
           const response = await getImageBlobById(item.picture_id);
           if (response) {
-            const { buffer, mimeType } = await response;
-            return { ...item, imageUrl: `data:${mimeType};base64,${buffer}` };
+            const { buffer, mimeType, size } = await response;
+            return { ...item, imageUrl: `data:${mimeType};base64,${buffer}`, imageSize :size };
           }
 
         } catch (error) {
@@ -53,19 +53,28 @@ export async function POST(req: NextRequest) {
       const x = marginX + col * (cellWidth + spacingX);
       const y = marginY + row * (cellHeight + spacingY);
     
-      const aspectRatio = 400 / 647; // Given aspect ratio
-      let imgWidth = cellWidth;
+      // Use actual image ratio (fall back to square if missing)
+      const originalWidth = item.imageSize?.width || 1; 
+      const originalHeight = item.imageSize?.height || 1;
+      const aspectRatio = originalWidth / originalHeight;
+
+      // Max bounds inside the cell (say 60% of cell height for image)
+      const maxWidth = cellWidth;
+      const maxHeight = cellHeight * 0.6;
+
+      // Scale proportionally
+      let imgWidth = maxWidth;
       let imgHeight = imgWidth / aspectRatio;
-    
-      // If the calculated height is too big for the cell, adjust
-      if (imgHeight > cellHeight * 0.6) { // Use 60% of the cell height max
-        imgHeight = cellHeight * 0.6;
+
+      if (imgHeight > maxHeight) {
+        imgHeight = maxHeight;
         imgWidth = imgHeight * aspectRatio;
       }
-    
-      const imageX = x + (cellWidth - imgWidth) / 2; // Center the image inside the cell
-      const imageY = y; // Start from top of cell
-    
+
+      // Center the image inside the cell
+      const imageX = x + (cellWidth - imgWidth) / 2;
+      const imageY = y;
+
       if (item.imageUrl) {
         pdf.addImage(item.imageUrl, 'JPEG', imageX, imageY, imgWidth, imgHeight);
       }
