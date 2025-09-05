@@ -58,11 +58,28 @@ export default function UsersPage() {
     } catch (err: any) {
       setError(err.message)
     }
-  }
+  }  
+  
   const deleteUser = async (userId: string) => {
     if (!confirm('Are you sure you want to delete this user?')) return
 
     try {
+      // First, disable the auth user
+      const disableResponse = await fetch('/api/users/disable', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId }),
+      })
+
+      const disableData = await disableResponse.json()
+      
+      if (!disableResponse.ok) {
+        throw new Error(disableData.message || 'Failed to disable user account')
+      }
+      
+      // Then delete the user profile
       const { error } = await supabase
         .from('user_profiles')
         .delete()
