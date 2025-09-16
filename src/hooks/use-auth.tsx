@@ -27,15 +27,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const supabase = createClient()
 
   useEffect(() => {
-    console.log('AuthProvider mounted')
+    // console.log('AuthProvider mounted')
 
     const loadUserProfile = async (userId: string) => {
-      console.log('Fetching user profile for userId:', userId)
+      // console.log('Fetching user profile for userId:', userId)
       let attempts = 0
       let profile: User | null = null
 
       while (!profile && attempts < 5) {
-        console.log('Before supabase read for user profile')
+        // console.log('Before supabase read for user profile')
         const { data, error } = await supabase
           .from('user_profiles')
           .select('*')
@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .limit(1)
           .single()
         
-        console.log('After supabase read for user profile')
+        // console.log('After supabase read for user profile')
 
         if (error) {
           console.warn('Error fetching profile (attempt', attempts + 1, '):', error.message)
@@ -59,30 +59,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (profile) {
         setUser(profile)
-        console.log('User profile set:', profile)
+        // console.log('User profile set:', profile)
       } else {
         console.error('Failed to fetch user profile after retries')
       }
     }
 
-    const init = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        setSupabaseUser(user)
-        await new Promise(res => setTimeout(res, 10000))
-        console.log('Initial user found:', user)
-        await loadUserProfile(user.id)
-      }
-      setLoading(false)
-    }
+    // const init = async () => {
+    //   const { data: { user } } = await supabase.auth.getUser()
+    //   if (user) {
+    //     setSupabaseUser(user)
+    //     await new Promise(res => setTimeout(res, 10000))
+    //     // console.log('Initial user found:', user)
+    //     await loadUserProfile(user.id)
+    //   }
+    //   setLoading(false)
+    // }
 
-    init()
+    // init()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         if (session?.user) {
           setSupabaseUser(session.user)
-          await loadUserProfile(session.user.id)
+        //   await new Promise(res => setTimeout(res, 10000))
+        // // console.log('Initial user found:', user)
+          loadUserProfile(session.user.id)
+          loadUserProfile(session.user.id)
         } else {
           setSupabaseUser(null)
           setUser(null)
