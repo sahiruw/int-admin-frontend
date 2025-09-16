@@ -35,11 +35,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       let profile: User | null = null
 
       while (!profile && attempts < 5) {
+        console.log('Before supabase read for user profile')
         const { data, error } = await supabase
           .from('user_profiles')
           .select('*')
           .eq('id', userId)
           .single()
+        
+        console.log('After supabase read for user profile')
 
         if (error) {
           console.warn('Error fetching profile (attempt', attempts + 1, '):', error.message)
