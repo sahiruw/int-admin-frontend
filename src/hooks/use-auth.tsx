@@ -39,15 +39,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { data, error } = await supabase
           .from('user_profiles')
           .select('*')
-          .eq('id', userId)
-          // .single()
+          // .eq('id', userId)
+          .limit(1)
+          .single()
         
         console.log('After supabase read for user profile')
 
         if (error) {
           console.warn('Error fetching profile (attempt', attempts + 1, '):', error.message)
-        } else if (data && Array.isArray(data) && data.length > 0) {
-          profile = data[0] as User
+        } else if (data) {
+          profile = data as User
         }
 
         if (!profile) {
