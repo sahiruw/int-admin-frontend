@@ -36,31 +36,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       while (!profile && attempts < 5) {
         console.log('Before supabase read for user profile')
-        const controller = new AbortController()
-        const timeout = setTimeout(() => controller.abort(), 30000) // 30 seconds timeout
-
-        let data = null
-        let error = null
-
-        try {
-          const response = await supabase
-            .from('user_profiles')
-            .select('*')
-            .eq('id', userId)
-            .limit(1)
-            .single()
-          data = response.data
-          error = response.error
-        } catch (err: any) {
-          if (err.name === 'AbortError') {
-            console.warn('Fetch user profile aborted after 30 seconds')
-            break
-          } else {
-            error = err
-          }
-        } finally {
-          clearTimeout(timeout)
-        }
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('id', userId)
+          .limit(1)
+          .single()
         
         console.log('After supabase read for user profile')
 
@@ -88,7 +69,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
         setSupabaseUser(user)
-        await loadUserProfile(user.id)
+        loadUserProfile(user.id)
+        loadUserProfile(user.id)
       }
       setLoading(false)
     }
