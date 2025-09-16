@@ -40,14 +40,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           .from('user_profiles')
           .select('*')
           .eq('id', userId)
-          .single()
+          // .single()
         
         console.log('After supabase read for user profile')
 
         if (error) {
           console.warn('Error fetching profile (attempt', attempts + 1, '):', error.message)
-        } else if (data) {
-          profile = data as User
+        } else if (data && Array.isArray(data) && data.length > 0) {
+          profile = data[0] as User
         }
 
         if (!profile) {
