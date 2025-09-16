@@ -69,8 +69,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
         setSupabaseUser(user)
-        loadUserProfile(user.id)
-        loadUserProfile(user.id)
+        await new Promise(res => setTimeout(res, 10000))
+        console.log('Initial user found:', user)
+        await loadUserProfile(user.id)
       }
       setLoading(false)
     }
