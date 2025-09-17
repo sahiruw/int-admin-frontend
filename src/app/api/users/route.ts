@@ -38,13 +38,10 @@ export async function POST(req: Request) {
     return await withPermission('users', 'create', async (currentUser) => {
       const body = await req.text();
       const { email, password, full_name, role = 'assistant' } = JSON.parse(body);
-
-      // Create a temporary client using anon key for signup
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
       
-      const tempSupabase = createSupabaseClient(supabaseUrl, supabaseAnonKey);
+      const tempSupabase = await createClient();
 
+      // console.log('Current user creating new user:', currentUser.email);
       // Sign up the user
       const { data: authData, error: authError } = await tempSupabase.auth.signUp({
         email,
@@ -56,6 +53,8 @@ export async function POST(req: Request) {
           }
         }
       });
+
+      // console.log('Auth data:', authData, 'Auth error:', authError);
 
       if (authError) {
         return NextResponse.json(
