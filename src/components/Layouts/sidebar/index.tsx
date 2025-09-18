@@ -9,12 +9,14 @@ import { NAV_DATA } from "./data";
 import { ArrowLeftIcon, ChevronUp } from "./icons";
 import { MenuItem } from "./menu-item";
 import { useSidebarContext } from "./sidebar-context";
+import { useAuth } from "@/hooks/use-auth";
 
 export function Sidebar() {
   const pathname = usePathname();
   const { setIsOpen, isOpen, isMobile, toggleSidebar } = useSidebarContext();
+  const { user} = useAuth();
   const [expandedSections, setExpandedSections] = useState<string[]>(
-    NAV_DATA.map((section) => section.label)
+    NAV_DATA[user?.role || ""].map((section) => section.label)
   );
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -25,7 +27,11 @@ export function Sidebar() {
   };
 
   useEffect(() => {
-    NAV_DATA.some((section) => {
+    setExpandedSections(NAV_DATA[user?.role||""].map((section)=>section.label));
+  }, [user?.role]);
+
+  useEffect(() => {
+    NAV_DATA[user?.role || ""].some((section) => {
       return section.items.some((item) => {
         return item.items.some((subItem) => {
           if (subItem.url === pathname) {
@@ -95,7 +101,7 @@ export function Sidebar() {
               "custom-scrollbar mt-6 flex-1 overflow-y-auto pr-3 min-[850px]:mt-10"
             )}
           >
-            {NAV_DATA.map((section) => (
+            {NAV_DATA[user?.role || ""].map((section) => (
               <div key={section.label} className="mb-6">
                 <button
                   onClick={() => toggleSection(section.label)}
