@@ -10,6 +10,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 import { useLoading } from '@/app/loading-context';
 import { Checkbox } from '@/components/FormElements/checkbox';
 import { AddKoiForm } from '@/components/Layouts/add-koi-form';
+import { useAuth } from "@/hooks/use-auth";
 
 export default function Page() {
   const { setLoading } = useLoading();
@@ -17,6 +18,7 @@ export default function Page() {
   const [filteredData, setFilteredData] = useState<KoiInfo[]>([]);
   const [filters, setFilters] = useState<Record<string, string[] | boolean[]>>({}); // { variety: ['Kohaku', 'Sanke'] }
   const [isReset, setIsReset] = useState<boolean>(false);
+  const {user} = useAuth();
 
   const [editingKoiId, setEditingKoiId] = useState<string | null>(null);
 
@@ -133,7 +135,7 @@ export default function Page() {
           reset={isReset}
         />
 
-        <Button variant="primary" shape={'rounded'} onClick={resetFilters} label='Reset' className='h-10 max-w-12' />
+        {user?.role === 'admin' && (<Button variant="primary" shape={'rounded'} onClick={resetFilters} label='Reset' className='h-10 max-w-12' />)}
       </div>
       <KoiInfoTable data={filteredData} setEditingKoiId={setEditingKoiId} onDataChange={refreshData} />
     </div>

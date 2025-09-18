@@ -15,6 +15,7 @@ import dayjs from "dayjs";
 import { useState } from "react";
 import { KoiInfo } from "@/types/koi";
 import { toast } from "react-hot-toast";
+import { useAuth } from "@/hooks/use-auth";
 
 
 export function KoiInfoTable({ data, setEditingKoiId, onDataChange }: { 
@@ -23,6 +24,7 @@ export function KoiInfoTable({ data, setEditingKoiId, onDataChange }: {
   onDataChange?: () => void;
 }) {
   const pageSizeOptions = [5, 10, 20, 50, 100];
+  const {user} = useAuth();
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(pageSizeOptions[Math.ceil(pageSizeOptions.length / 2)]);  const [confirmationDialog, setConfirmationDialog] = useState<{
@@ -153,7 +155,7 @@ export function KoiInfoTable({ data, setEditingKoiId, onDataChange }: {
               <TableHead>Commission</TableHead>
               <TableHead>Net Revenue</TableHead>
               <TableHead>Shipping Info</TableHead>
-              <TableHead>Actions</TableHead>
+              {user?.role === 'admin' && (<TableHead>Actions</TableHead>)}
             </TableRow>
 
           </TableHeader>
@@ -227,7 +229,9 @@ export function KoiInfoTable({ data, setEditingKoiId, onDataChange }: {
                   <p className="text-sm text-gray-500 dark:text-gray-400">
                     📆 {dayjs(row.date).format("MMM DD, YYYY")}
                   </p>
-                </TableCell>                <TableCell>
+                </TableCell>                
+                
+                {user?.role === 'admin' && (<TableCell>
                   <div className="flex gap-2">
                     <button
                       className="hover:text-primary-600"
@@ -255,7 +259,8 @@ export function KoiInfoTable({ data, setEditingKoiId, onDataChange }: {
                       <TrashIcon className="w-5 h-5" />
                     </button>
                   </div>
-                </TableCell>
+                </TableCell>)}
+
               </TableRow>
 
             ))}
