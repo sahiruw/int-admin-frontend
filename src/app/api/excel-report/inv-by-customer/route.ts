@@ -22,11 +22,10 @@ export async function POST(req: Request) {
       row.comm_jpy,
       row.total_jpy_sales,
       row.pcs ? row.sale_price_jpy / row.pcs : "",
+      row.sc_per_koi,
     ];
   });
   
-
-
   const { drive, sheets } = await getGoogleServices();
 
   // // Step 1: Copy the template sheet
