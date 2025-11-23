@@ -14,7 +14,7 @@ import {
 import { FormPopup } from "./FormPopup";
 import { ConfirmationDialog } from "./ConfirmationDialog";
 import { ConfirmationDialogProps } from "@/types/ui";
-import { KoiInfo, ShippingData } from "@/types/koi";
+import { KoiInfo, KoiSaleRecord, ShippingData } from "@/types/koi";
 
 type DataTableProps = {
   rawData: KoiInfo[];
@@ -131,32 +131,10 @@ export function DataTable({
   
 
   const totalsByGroup = useMemo(() => {
-    console.log("Calculating totals by group...");
-    const groupTotals: Record<string, { numerator: number; denominator: number }> = {};
-
-    data.forEach(row => {
-      if (row.grouping && row.pcs) {
-        const group = row.grouping;
-        const weightSum = row.weight_of_box && row.box_count ? row.weight_of_box * row.box_count: 0;
-        const pcs = row.pcs;
-
-        if (!groupTotals[group]) {
-          groupTotals[group] = { numerator: 0, denominator: 0 };
-        }
-
-        groupTotals[group].numerator += weightSum;
-        groupTotals[group].denominator += pcs;
-      }
-    });
-
-    const result: Record<string, number> = {};
-    for (const group in groupTotals) {
-      const { numerator, denominator } = groupTotals[group];
-      result[group] = denominator !== 0 ? numerator / denominator : 0;
-    }
-    console.log(result)
-    return result;
+    console.log("Calculating totals by group...", data);
+    return calculateSCKOI(data);
   }, [data]);
+
 
   return (
     <div className="space-y-4">      {/* Master Ship Date Controls */}
@@ -349,3 +327,30 @@ export function DataTable({
     </div>
   );
 }
+
+export const calculateSCKOI = (data: (KoiInfo | KoiSaleRecord)[]): Record<string, number> => {
+    const groupTotals: Record<string, { numerator: number; denominator: number }> = {};
+
+    data.forEach(row => {
+      if (row.grouping && row.pcs) {
+        const group = row.grouping;
+        const weightSum = row.weight_of_box && row.box_count ? row.weight_of_box * row.box_count: 0;
+        const pcs = row.pcs;
+
+        if (!groupTotals[group]) {
+          groupTotals[group] = { numerator: 0, denominator: 0 };
+        }
+
+        groupTotals[group].numerator += weightSum;
+        groupTotals[group].denominator += pcs;
+      }
+    });
+
+    const result: Record<string, number> = {};
+    for (const group in groupTotals) {
+      const { numerator, denominator } = groupTotals[group];
+      result[group] = denominator !== 0 ? numerator / denominator : 0;
+    }
+    console.log(result)
+    return result;
+  }

@@ -2,6 +2,7 @@
 import { useLoading } from '@/app/loading-context';
 import { Picker } from '@/components/FormElements/Dropdown';
 import { FilteredTextboxDropdown } from '@/components/FormElements/filteredselect';
+import { calculateSCKOI } from '@/components/Layouts/ShippingTable';
 import { DataTable } from '@/components/Layouts/tables/uneditable';
 import { cn } from '@/lib/utils';
 import { KoiInfo, KoiSaleRecord } from '@/types/koi';
@@ -20,9 +21,46 @@ const Page = () => {
         const fetchData = async () => {
             try {
                 setLoading(true);
-                const res = await fetch('/api/koi', { next: { revalidate: 300 } });
+                const res = await fetch('/api/koi?shipped=false', { next: { revalidate: 300 } });
                 const rawData: KoiSaleRecord[] = await res.json();
-                const filtered = rawData.filter((record) => record.date && !record.shipped);
+                const filtered = rawData.filter((record) => !record.shipped);
+
+                // set sc per koi
+                
+                // get shipping cost
+                const response = await fetch('/api/config');
+                const config = await response.json();
+                console.log("Config data:", config);
+
+                const grouped_by_breeder = {} as Record<string, KoiSaleRecord[]>;
+                filtered.forEach((record) => {
+                    if (record.breeder_name) {
+                        if (!grouped_by_breeder[record.breeder_name]) {
+                            grouped_by_breeder[record.breeder_name] = [];
+                        }
+                        grouped_by_breeder[record.breeder_name].push(record);
+                    }
+                });
+
+                let totals_for_each_breeder: Record<string, any> = {};
+
+                for (const breeder in grouped_by_breeder) {
+                    const records = grouped_by_breeder[breeder];
+                    const totalsByGroup = calculateSCKOI(records);
+                    totals_for_each_breeder[breeder] = totalsByGroup;
+                }
+
+                filtered.forEach((record) => {
+                    const breederTotals = totals_for_each_breeder[record.breeder_name];
+                    if (breederTotals && record.grouping) {
+                        record['sc_per_koi'] = breederTotals[record.grouping] * config.shipping_cost  || 0;
+                    } else {
+                        record['sc_per_koi'] = 0;
+                    }
+                });
+
+                console.log("Fetched koi sales data:", filtered.filter( x=> x.picture_id === 'x1107n009'));
+
                 setData(filtered);
             } catch (error) {
                 console.error("Failed to fetch koi sales data:", error);
@@ -48,120 +86,72 @@ const Page = () => {
 
 
     useEffect(() => {
-        const groupTotals: Record<
-          string, // breeder_id
-          Record<string, { numerator: number; denominator: number }> // grouping totals
-        > = {};
-      
-        data.forEach(row => {
-          if (
-            row.breeder_id &&
-            row.grouping &&
-            row.weight_of_box &&
-            row.box_count &&
-            row.pcs
-          ) {
-            const breeder = row.breeder_id;
-            const group = row.grouping;
-            const weightSum = row.weight_of_box * row.box_count;
-            const pcs = row.pcs;
-      
-            if (!groupTotals[breeder]) {
-              groupTotals[breeder] = {};
-            }
-      
-            if (!groupTotals[breeder][group]) {
-              groupTotals[breeder][group] = { numerator: 0, denominator: 0 };
-            }
-      
-            groupTotals[breeder][group].numerator += weightSum;
-            groupTotals[breeder][group].denominator += pcs;
-          }
-        });
-      
-        const result: Record<string, Record<string, number>> = {};
-        for (const breeder in groupTotals) {
-          result[breeder] = {};
-          for (const group in groupTotals[breeder]) {
-            const { numerator, denominator } = groupTotals[breeder][group];
-            result[breeder][group] = denominator !== 0 ? numerator / denominator : 0;
-          }
-        }
-      
-        let newData = data.map((item) => {
-            const group = item.grouping;
-            const breeder = item.breeder_id;
-            const weight = result[breeder]?.[group] || "";
-            return {
-                ...item,
-                sc_per_koi: weight,
-            };
-            }
-        ).filter((item) => {
+        let newData = data
+        .filter((item) => {
             if (selectedCustomer) {
                 return item.customer_name === selectedCustomer;
             }
             return true;
         }
-    )
+        )
 
         setTableData(newData);
-      }, [data, selectedCustomer]);
-      
+    }, [data, selectedCustomer]);
+
 
 
     const handleGenerateReport = () => {
-              setLoading(true)
-      
-              try {
-                let data = {
-                    customer: selectedCustomer,
-                    records: tableData
-                };
-      
-                  fetch("/api/excel-report/inv-by-customer", {
-                      method: "POST",
-                      headers: {
-                          "Content-Type": "application/json",
-                      },
-                      body: JSON.stringify({ payload: data }),
-                  })
-                      .then(async (res) => {
-                          if (!res.ok) throw new Error("Failed to generate report");
-                  
-                          const blob = await res.blob();
-                          const url = window.URL.createObjectURL(blob);
-                  
-                          // Create a temporary link to download the file
-                          const link = document.createElement("a");
-                          link.href = url;
-                          link.download = `Koi_Report_${Date.now()}.xlsx`;
-                          document.body.appendChild(link);
-                          link.click();
-                  
-                          // Cleanup
-                          link.remove();
-                          window.URL.revokeObjectURL(url);
-                  
-                          toast.success("Report downloaded successfully");
-                      })
-                      .catch((error) => {
-                          console.error("Error:", error);
-                          toast.error("Failed to generate report");
-                      })
-                      .finally(() => {
-                          setLoading(false);
-                      });
-                  
-              }
-      
-              catch (error) {
-                  console.error("Error:", error);
-                  toast.error("Failed to generate report");
-              }
-      
-      
-          }
+        setLoading(true)
+
+        try {
+            let data = {
+                customer: selectedCustomer,
+                records: tableData
+            };
+
+            fetch("/api/excel-report/inv-by-customer", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ payload: data }),
+            })
+                .then(async (res) => {
+                    if (!res.ok) throw new Error("Failed to generate report");
+
+                    const blob = await res.blob();
+                    const url = window.URL.createObjectURL(blob);
+
+                    // Create a temporary link to download the file
+                    const link = document.createElement("a");
+                    link.href = url;
+                    link.download = `Koi_Report_${Date.now()}.xlsx`;
+                    document.body.appendChild(link);
+                    link.click();
+
+                    // Cleanup
+                    link.remove();
+                    window.URL.revokeObjectURL(url);
+
+                    toast.success("Report downloaded successfully");
+                })
+                .catch((error) => {
+                    console.error("Error:", error);
+                    toast.error("Failed to generate report");
+                })
+                .finally(() => {
+                    setLoading(false);
+                });
+
+        }
+
+        catch (error) {
+            console.error("Error:", error);
+            toast.error("Failed to generate report");
+        }
+
+
+    }
 
 
     const handleThumbnailSheetGeneration = async () => {
@@ -206,24 +196,23 @@ const Page = () => {
         }
     };
 
-
     return (
         <div className="rounded-[10px] bg-white shadow-1 dark:bg-gray-dark dark:shadow-card px-8 pt-4 space-y-4" style={{ height: "83vh", overflowY: "auto" }}>
             <div className="flex items-end justify-between w-full gap-4">
                 <div className="flex items-end gap-4">
 
                     <FilteredTextboxDropdown
-                                placeholder={selectedCustomer ? selectedCustomer : "Select Customer"}
-                                items={uniqueCustomers.map((item => ({
-                                    value: item,
-                                    label: item
-                                })))}
-                                onChange={(value) => {
-                                  setSelectedCustomer(value);
-                                }}
-                              />
+                        placeholder={selectedCustomer ? selectedCustomer : "Select Customer"}
+                        items={uniqueCustomers.map((item => ({
+                            value: item,
+                            label: item
+                        })))}
+                        onChange={(value) => {
+                            setSelectedCustomer(value);
+                        }}
+                    />
 
-                              
+
                 </div>
 
                 <div className="flex items-end gap-4">
@@ -277,7 +266,7 @@ const Page = () => {
                     { key: "box_size", header: "Box Size" },
                     { key: "weight_of_box", header: "KG" },
                     { key: "total_weight", header: "Total KG" },
-                    {key : "sc_per_koi", header: "S/C Per Koi"}
+                    { key: "sc_per_koi", header: "S/C Per Koi" }
 
 
 
