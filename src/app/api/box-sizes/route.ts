@@ -1,21 +1,10 @@
 import { createClient } from "@/utils/supabase/supabase";
+import { getBoxSizes } from "../../../utils/boxSizes";
 
-export async function get_box_sizes(){
-  const supabaseClient = await createClient();
-
-  const { data, error } = await supabaseClient.from("box_size").select(`
-    *,
-    breeder (
-      name
-    )
-  `)
-
-  return { data, error };
-}
 
 export async function GET() {
   
-  const { data, error } = await get_box_sizes();
+  const { data, error } = await getBoxSizes();
 
   if (error) {
     return new Response(

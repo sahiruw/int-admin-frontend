@@ -1,5 +1,5 @@
 import { getGoogleServices } from "@/utils/google/google";
-import { get_box_sizes } from "../../box-sizes/route";
+import { getBoxSizes } from "../../../../utils/boxSizes";
 
 const TEMPLATE_SHEET_ID = "1xzJp4GJykchG9bsyp_lx-n97FbeH_xmN2aTRMHfFpuk";
 const DEST_FOLDER_ID = "1yW_gHBrLxoZtWKAdSYKJL0SDKzINscl6";
@@ -9,7 +9,7 @@ export async function POST(req: Request) {
   const { payload } = JSON.parse(body);
   let { date, breeder, breederID, records } = payload;
 
-  let { data, error } = await get_box_sizes();
+  let { data, error } = await getBoxSizes();
   data = data?.filter( (box) => (box.breeder_id === parseInt(breederID)) )
 
   records = records.map((row) => {

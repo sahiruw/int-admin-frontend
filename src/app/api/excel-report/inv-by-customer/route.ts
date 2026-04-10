@@ -1,5 +1,4 @@
 import { getGoogleServices } from "@/utils/google/google";
-import { get_box_sizes } from "../../box-sizes/route";
 
 const TEMPLATE_SHEET_ID = "1-MdbS3i1zQP86Ry8LbTLpwpyRByr9mnXtkejKsN093A";
 const DEST_FOLDER_ID = "1IyZJhmGAznpp8dAnxWt6UrhJMijmMzLH";
