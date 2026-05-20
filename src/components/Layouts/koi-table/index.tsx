@@ -167,7 +167,7 @@ export function KoiInfoTable({ data, setEditingKoiId, onDataChange }: {
                 <TableCell>
                   <div className="flex flex-col">
                     <p className="font-medium text-dark dark:text-white">
-                      {row.picture_id} - {row.variety_name} ({row.koi_id})
+                  {row.picture_id} - {row.koi_id} ({row.variety_name})
                     </p>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       {row.sex} | {row.age} yrs | {row.size_cm} cm
