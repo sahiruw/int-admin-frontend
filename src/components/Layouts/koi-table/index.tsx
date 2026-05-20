@@ -355,7 +355,7 @@ const SalesCell = (jpy?: number | null, usd?: number | null) => {
             className="w-3 h-3 rounded-full bg-[#BC002D]"
             aria-label="Red Ball"
           ></span>
-          ¥{jpy.toLocaleString()}
+          ¥{Math.round(jpy).toLocaleString()}
         </span>)}
 
         {usd && usd > 0 && (<span className="flex items-center gap-1">
@@ -364,7 +364,7 @@ const SalesCell = (jpy?: number | null, usd?: number | null) => {
             alt="US Flag"
             className="w-3 h-3 rounded-full"
           />
-          ${usd.toLocaleString()}
+          ${Math.round(usd).toLocaleString()}
         </span>)}
       </p>
     </TableCell>
