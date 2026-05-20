@@ -3,6 +3,13 @@ import { getImageBlobById } from "@/utils/google/google-drive-pictures";
 import jsPDF from "jspdf";
 import { IMAGE_NOT_FOUND_DATA_URL } from "@/utils/image-not-found";
 
+const getPdfImageFormat = (mimeType?: string) => {
+  if (!mimeType) return "JPEG";
+  if (mimeType.includes("png")) return "PNG";
+  if (mimeType.includes("webp")) return "WEBP";
+  return "JPEG";
+};
+
 export async function POST(req: NextRequest) {
   try {
     const { items } = await req.json();
@@ -13,7 +20,12 @@ export async function POST(req: NextRequest) {
           const response = await getImageBlobById(item.picture_id);
           if (response) {
             const { buffer, mimeType, size } = await response;
-            return { ...item, imageUrl: `data:${mimeType};base64,${buffer}`, imageSize :size };
+            return {
+              ...item,
+              imageUrl: `data:${mimeType};base64,${buffer}`,
+              imageSize: size,
+              imageFormat: getPdfImageFormat(mimeType),
+            };
           }
 
         } catch (error) {
@@ -76,7 +88,14 @@ export async function POST(req: NextRequest) {
       const imageY = y;
 
       if (item.imageUrl) {
-        pdf.addImage(item.imageUrl, 'JPEG', imageX, imageY, imgWidth, imgHeight);
+        pdf.addImage(
+          item.imageUrl,
+          item.imageFormat || "JPEG",
+          imageX,
+          imageY,
+          imgWidth,
+          imgHeight
+        );
       }
     
       const textStartY = imageY + imgHeight + 5; // Text starts a little below image
