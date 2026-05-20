@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronUpIcon } from "@/assets/icons";
+import { useClickOutside } from "@/hooks/use-click-outside";
 import { cn } from "@/lib/utils";
 import { useId, useState } from "react";
 
@@ -26,6 +27,7 @@ export function FilteredTextboxDropdown({
   const id = useId();
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
+  const wrapperRef = useClickOutside<HTMLDivElement>(() => setIsOpen(false));
 
   const filteredItems = shouldShowSearch
     ? items.filter((item) =>
@@ -34,7 +36,7 @@ export function FilteredTextboxDropdown({
     : items;
 
   return (
-    <div className={cn("relative", className)}>
+    <div ref={wrapperRef} className={cn("relative", className)}>
       {label && (
         <label
           htmlFor={id}
@@ -53,8 +55,13 @@ export function FilteredTextboxDropdown({
         {prefixIcon && <div className="mr-2">{prefixIcon}</div>}
         <input
           id={id}
+          name={`${id}-search`}
           type="text"
           value={search}
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="none"
+          spellCheck={false}
           onChange={(e) => {
             setSearch(e.target.value);
             setIsOpen(true);
@@ -64,7 +71,6 @@ export function FilteredTextboxDropdown({
             setSearch("");
             setIsOpen(true);
           }}
-          onBlur={() => setTimeout(() => setIsOpen(false), 200)}
           placeholder={placeholder}
           className={cn(
             "w-full bg-transparent text-sm outline-none placeholder:text-neutral-500 dark:placeholder:text-neutral-400",

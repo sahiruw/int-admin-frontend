@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronUpIcon } from "@/assets/icons";
+import { useClickOutside } from "@/hooks/use-click-outside";
 import { cn } from "@/lib/utils";
 import { useState, useId, useEffect } from "react";
 
@@ -30,6 +31,7 @@ export function FilteredMultiSelectTextboxDropdown({
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [selectedValues, setSelectedValues] = useState<string[]>([]);
+  const wrapperRef = useClickOutside<HTMLDivElement>(() => setIsOpen(false));
 
   useEffect(() => {
     if (reset) {
@@ -66,7 +68,10 @@ export function FilteredMultiSelectTextboxDropdown({
   };
 
   return (
-    <div className={cn("space-y-1 min-w-60 relative text-sm", className)}>
+    <div
+      ref={wrapperRef}
+      className={cn("space-y-1 min-w-60 relative text-sm", className)}
+    >
       <label
         htmlFor={id}
         className="block text-body-xs font-medium text-dark dark:text-white"
@@ -76,9 +81,14 @@ export function FilteredMultiSelectTextboxDropdown({
       <div className="relative">
         <input
           id={id}
+          name={`${id}-search`}
           type="text"
           value={isOpen ? search : getDisplayText()}
           readOnly={!isOpen}
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="none"
+          spellCheck={false}
           onChange={(e) => {
             setSearch(e.target.value);
             setIsOpen(true);
@@ -87,7 +97,6 @@ export function FilteredMultiSelectTextboxDropdown({
             setIsOpen(true);
             setSearch("");
           }}
-          onBlur={() => setTimeout(() => setIsOpen(false), 200)}
           className={cn(
             "w-full rounded-lg border border-stroke bg-transparent px-5.5 py-2 outline-none transition focus:border-primary active:border-primary dark:border-dark-3 dark:bg-dark-2 dark:focus:border-primary",
             { "cursor-pointer": !isOpen }

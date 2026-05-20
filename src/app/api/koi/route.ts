@@ -39,8 +39,8 @@ export async function GET(request: Request) {
       let whereClauses = [];
       if (breederId) whereClauses.push(Prisma.sql`breeder_id = ${parseInt(breederId)}`);
       if (shipped) {
-        if (shipped === 'true') whereClauses.push(Prisma.sql`shipped = true`);
-        else if (shipped === 'false') whereClauses.push(Prisma.sql`shipped = false`);
+        if (shipped === 'true') whereClauses.push(Prisma.sql`shipped IS TRUE`);
+        else if (shipped === 'false') whereClauses.push(Prisma.sql`shipped IS NOT TRUE`);
       }
 
       let whereSql = whereClauses.length > 0 ? Prisma.sql`WHERE ${Prisma.join(whereClauses, ' AND ')}` : Prisma.empty;

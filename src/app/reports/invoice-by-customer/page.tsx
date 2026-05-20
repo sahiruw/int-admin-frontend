@@ -22,8 +22,7 @@ const Page = () => {
             try {
                 setLoading(true);
                 const res = await fetch('/api/koi?shipped=false', { next: { revalidate: 300 } });
-                const rawData: KoiSaleRecord[] = await res.json();
-                const filtered = rawData.filter((record) => !record.shipped);
+                const filtered: KoiSaleRecord[] = await res.json();
 
                 // set sc per koi
                 
@@ -58,8 +57,6 @@ const Page = () => {
                         record['sc_per_koi'] = 0;
                     }
                 });
-
-                console.log("Fetched koi sales data:", filtered.filter( x=> x.picture_id === 'x1107n009'));
 
                 setData(filtered);
             } catch (error) {
