@@ -1,42 +1,39 @@
+import prisma from "@/lib/prisma";
 import { clearCacheMatchingKeyPattern } from "@/utils/cache";
-import { createClient } from "@/utils/supabase/supabase";
-
 
 export async function PUT(req: Request) {
-  const supabaseClient = await createClient();
+  try {
+    const body = await req.text();
+    const { payload } = JSON.parse(body);
+    
+    let data;
+    if (Array.isArray(payload)) {
+      data = await Promise.all(payload.map(p => prisma.shipinfo.upsert({
+        where: { picture_id: p.picture_id },
+        update: p,
+        create: p
+      })));
+    } else {
+      data = await prisma.shipinfo.upsert({
+        where: { picture_id: payload.picture_id },
+        update: payload,
+        create: payload
+      });
+    }
 
-  const body = await req.text();
-  const { payload } = JSON.parse(body);
-  console.log("Payload", payload);
-  const { data, error } = await supabaseClient.from("shipinfo").upsert(payload);
+    clearCacheMatchingKeyPattern("koi_*");
 
-  if (error) {
+    return new Response(
+      JSON.stringify({ message: "Location updated successfully", data }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
+  } catch (error: any) {
     return new Response(
       JSON.stringify({
         message: "An error occurred while updating location",
         error: error.message,
       }),
-      {
-        status: 500,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
+      { status: 500, headers: { "Content-Type": "application/json" } }
     );
-  } 
-
-  clearCacheMatchingKeyPattern("koi_*")
-
-  return new Response(
-    JSON.stringify({
-      message: "Location updated successfully",
-      data,
-    }),
-    {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-  );
-} 
+  }
+}

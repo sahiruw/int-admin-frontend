@@ -1,140 +1,101 @@
-import { createClient } from "@/utils/supabase/supabase";
+import prisma from "@/lib/prisma";
 
 export async function GET() {
-  const supabaseClient = await createClient();
-
-  const { data, error } = await supabaseClient.from("shippinglocation").select("*");
-
-  if (error) {
+  try {
+    const data = await prisma.shippinglocation.findMany();
+    return new Response(JSON.stringify(data), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error: any) {
     return new Response(
       JSON.stringify({
-        message: "An error occurred while fetching shipping location",
+        message: "An error occurred while fetching shipping locations",
         error: error.message,
       }),
-      {
-        status: 500,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
+      { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
-
-  return new Response(JSON.stringify(data), {
-    status: 200,
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-  
 }
 
-
 export async function PUT(req: Request) {
-  const supabaseClient = await createClient();
-
-  const body = await req.text();
-  const { payload } = JSON.parse(body);
-  const { data, error } = await supabaseClient.from("shippinglocation").upsert(payload);
-
-  if (error) {
-    return new Response(
-      JSON.stringify({
-        message: "An error occurred while updating location",
-        error: error.message,
-      }),
-      {
-        status: 500,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
-  }
-
-  return new Response(
-    JSON.stringify({
-      message: "Location updated successfully",
-      data,
-    }),
-    {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-  );
-} 
-
-
-export async function POST(req: Request) {
-    const supabaseClient = await createClient();
+  try {
     const body = await req.text();
     const { payload } = JSON.parse(body);
+    
+    let data;
+    if (Array.isArray(payload)) {
+      data = await Promise.all(payload.map(p => prisma.shippinglocation.upsert({
+        where: { id: p.id },
+        update: p,
+        create: p
+      })));
+    } else {
+      data = await prisma.shippinglocation.upsert({
+        where: { id: payload.id },
+        update: payload,
+        create: payload
+      });
+    }
 
-    const { data, error } = await supabaseClient.from("shippinglocation").insert(payload);
-    
-    if (error) {
-        return new Response(
-        JSON.stringify({
-            message: "An error occurred while adding location",
-            error: error.message,
-        }),
-        {
-            status: 500,
-            headers: {
-            "Content-Type": "application/json",
-            },
-        }
-        );
-    }
-    
     return new Response(
-        JSON.stringify({
-        message: "Location added successfully",
-        data,
-        }),
-        {
-        status: 200,
-        headers: {
-            "Content-Type": "application/json",
-        },
-        }
+      JSON.stringify({ message: "Shipping location updated successfully", data }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
     );
+  } catch (error: any) {
+    return new Response(
+      JSON.stringify({
+        message: "An error occurred while updating shipping location",
+        error: error.message,
+      }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
+  }
+}
+
+export async function POST(req: Request) {
+  try {
+    const body = await req.text();
+    const { payload } = JSON.parse(body);
+    
+    let data;
+    if (Array.isArray(payload)) {
+      data = await prisma.shippinglocation.createMany({ data: payload });
+    } else {
+      data = await prisma.shippinglocation.create({ data: payload });
     }
+
+    return new Response(
+      JSON.stringify({ message: "Shipping location added successfully", data }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
+    );
+  } catch (error: any) {
+    return new Response(
+      JSON.stringify({
+        message: "An error occurred while adding shipping location",
+        error: error.message,
+      }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
+  }
+}
 
 export async function DELETE(req: Request) {
-    const supabaseClient = await createClient();
+  try {
     const body = await req.text();
     const { id } = JSON.parse(body);
-
-    const { data, error } = await supabaseClient.from("shippinglocation").delete().match({ id });
-    
-    if (error) {
-        return new Response(
-        JSON.stringify({
-            message: "An error occurred while deleting location",
-            error: error.message,
-        }),
-        {
-            status: 500,
-            headers: {
-            "Content-Type": "application/json",
-            },
-        }
-        );
-    }
-    
+    const data = await prisma.shippinglocation.delete({ where: { id } });
     return new Response(
-        JSON.stringify({
-        message: "Location deleted successfully",
-        data,
-        }),
-        {
-        status: 200,
-        headers: {
-            "Content-Type": "application/json",
-        },
-        }
+      JSON.stringify({ message: "Shipping location deleted successfully", data }),
+      { status: 200, headers: { "Content-Type": "application/json" } }
     );
-    }
+  } catch (error: any) {
+    return new Response(
+      JSON.stringify({
+        message: "An error occurred while deleting shipping location",
+        error: error.message,
+      }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
+  }
+}

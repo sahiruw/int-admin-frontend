@@ -1,21 +1,16 @@
-import { createClient } from "@/utils/supabase/supabase";
-import { NextResponse } from 'next/server';
+import prisma from "@/lib/prisma";
 
 export async function POST() {
   try {
-    const supabaseClient = await createClient();
-
-    // Check if we have basic reference data, if not, create some
     const [breedersRes, varietiesRes, configRes] = await Promise.all([
-      supabaseClient.from("breeder").select("id, name").limit(1),
-      supabaseClient.from("variety").select("id, variety").limit(1),
-      supabaseClient.from("configuration").select("ex_rate, commission").limit(1)
+      prisma.breeder.findMany({ take: 1, select: { id: true, name: true } }),
+      prisma.variety.findMany({ take: 1, select: { id: true, variety: true } }),
+      prisma.configuration.findMany({ take: 1, select: { ex_rate: true, commission: true } })
     ]);
 
     const results: any = { actions: [] };
 
-    // Add sample breeders if none exist
-    if (breedersRes.data && breedersRes.data.length === 0) {
+    if (!breedersRes || breedersRes.length === 0) {
       const sampleBreeders = [
         { id: 19, name: "Hoshikin Koi Farm" },
         { id: 33, name: "Isa Koi Farm" },
@@ -24,69 +19,69 @@ export async function POST() {
       ];
 
       for (const breeder of sampleBreeders) {
-        const insertRes = await supabaseClient
-          .from("breeder")
-          .upsert(breeder, { onConflict: 'id' });
-        
-        results.actions.push(`Breeder ${breeder.name}: ${insertRes.error ? 'failed' : 'success'}`);
+        try {
+          await prisma.breeder.upsert({
+            where: { id: breeder.id },
+            update: breeder,
+            create: breeder
+          });
+          results.actions.push(`Breeder ${breeder.name}: success`);
+        } catch(e) {
+          results.actions.push(`Breeder ${breeder.name}: failed`);
+        }
       }
     } else {
-      results.actions.push(`Breeders already exist: ${breedersRes.data?.length}`);
+      results.actions.push(`Breeders already exist: ${breedersRes.length}`);
     }
 
-    // Add sample varieties if none exist
-    if (varietiesRes.data && varietiesRes.data.length === 0) {
+    if (!varietiesRes || varietiesRes.length === 0) {
       const sampleVarieties = [
-        { id: 10, variety: "Kohaku" },
-        { id: 23, variety: "Showa" },
-        { id: 32, variety: "Shiro Utsuri" },
-        { id: 17, variety: "Taisho Sanke" }
+        { id: 10, variety: "Kohaku", woo_variety: "" },
+        { id: 23, variety: "Showa", woo_variety: "" },
+        { id: 32, variety: "Shiro Utsuri", woo_variety: "" },
+        { id: 17, variety: "Taisho Sanke", woo_variety: "" }
       ];
 
       for (const variety of sampleVarieties) {
-        const insertRes = await supabaseClient
-          .from("variety")
-          .upsert(variety, { onConflict: 'id' });
-        
-        results.actions.push(`Variety ${variety.variety}: ${insertRes.error ? 'failed' : 'success'}`);
+        try {
+          await prisma.variety.upsert({
+            where: { id: variety.id },
+            update: variety,
+            create: variety
+          });
+          results.actions.push(`Variety ${variety.variety}: success`);
+        } catch(e) {
+          results.actions.push(`Variety ${variety.variety}: failed`);
+        }
       }
     } else {
-      results.actions.push(`Varieties already exist: ${varietiesRes.data?.length}`);
+      results.actions.push(`Varieties already exist: ${varietiesRes.length}`);
     }
 
-    // Add configuration if none exists
-    if (configRes.data && configRes.data.length === 0) {
-      const config = { ex_rate: 140.0, commission: 0.2 };
-      const insertRes = await supabaseClient
-        .from("configuration")
-        .insert(config);
-      
-      results.actions.push(`Configuration: ${insertRes.error ? 'failed' : 'success'}`);
+    if (!configRes || configRes.length === 0) {
+      try {
+        await prisma.configuration.create({
+          data: { ex_rate: 140.0, commission: 0.2, shipping_cost: 0 }
+        });
+        results.actions.push(`Configuration: success`);
+      } catch(e) {
+        results.actions.push(`Configuration: failed`);
+      }
     } else {
       results.actions.push(`Configuration already exists`);
     }
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        ...results
-      }),
-      {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      }
+      JSON.stringify({ success: true, ...results }),
+      { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
-
   } catch (error) {
     return new Response(
       JSON.stringify({
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error'
       }),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      }
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
 }

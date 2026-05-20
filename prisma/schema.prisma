@@ -1,0 +1,99 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model box_size {
+  breeder_id   Int
+  size         String
+  length_cm    Decimal? @db.Decimal
+  width_cm     Decimal? @db.Decimal
+  thickness_cm Decimal? @db.Decimal
+  breeder      breeder  @relation(fields: [breeder_id], references: [id])
+
+  @@id([breeder_id, size])
+}
+
+model breeder {
+  id       Int        @id @default(autoincrement())
+  name     String?
+  box_size box_size[]
+  koiinfo  koiinfo[]
+}
+
+model configuration {
+  id            Int       @id @default(autoincrement())
+  ex_rate       Decimal   @db.Decimal
+  shipping_cost Decimal   @db.Decimal
+  commission    Decimal   @db.Decimal
+  created_at    DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime? @default(now()) @db.Timestamptz(6)
+}
+
+model customer {
+  id      Int       @id @default(autoincrement())
+  name    String?
+  koiinfo koiinfo[]
+}
+
+model koiinfo {
+  picture_id       String            @id
+  koi_id           Int?
+  sex              String?
+  age              Int?
+  size_cm          String?
+  breeder_id       Int?
+  pcs              Int?
+  jpy_cost         Decimal?          @db.Decimal
+  customer_id      Int?
+  ship_to          Int?
+  sale_price_jpy   Decimal?          @db.Decimal
+  sale_price_usd   Decimal?          @db.Decimal
+  comm             Decimal?          @db.Decimal
+  rate             Decimal?          @db.Decimal
+  timestamp        DateTime?         @db.Timestamptz(6)
+  breeder          breeder?          @relation(fields: [breeder_id], references: [id])
+  customer         customer?         @relation(fields: [customer_id], references: [id])
+  variety          variety?          @relation(fields: [koi_id], references: [id])
+  shippinglocation shippinglocation? @relation(fields: [ship_to], references: [id])
+  shipinfo         shipinfo?
+}
+
+model shipinfo {
+  picture_id           String    @id
+  date                 DateTime? @db.Date
+  box_count            Decimal?  @db.Decimal
+  box_size             String?
+  weight_of_box        Decimal?  @db.Decimal
+  shipped              Boolean?
+  grouping             String?
+  shipping_cost_per_kg Decimal?  @db.Decimal
+  timestamp            DateTime? @db.Timestamptz(6)
+  koiinfo              koiinfo   @relation(fields: [picture_id], references: [picture_id])
+}
+
+model shippinglocation {
+  id      Int       @id @default(autoincrement())
+  name    String?
+  koiinfo koiinfo[]
+}
+
+model user_profiles {
+  id         String    @id @db.Uuid
+  email      String
+  role       String    @default("assistant")
+  full_name  String?
+  avatar_url String?
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at DateTime? @default(now()) @db.Timestamptz(6)
+}
+
+model variety {
+  id          Int       @id @default(autoincrement())
+  variety     String?
+  woo_variety String?
+  koiinfo     koiinfo[]
+}

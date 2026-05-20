@@ -1,25 +1,30 @@
-import { getCache , setCache} from "@/utils/cache";
-import { createClient } from "@/utils/supabase/supabase";
+import prisma from "@/lib/prisma";
+import { getCache, setCache } from "@/utils/cache";
 
 export async function GET(req: Request) {
-  const supabaseClient = await createClient();
-
   const cacheKey = `koi_summary`;
-    const cachedData = getCache(cacheKey);
-  
-    if (cachedData) {
-      return new Response(JSON.stringify(cachedData), {
-        status: 200,
-        headers: {
-          "Content-Type": "application/json",
-          "X-Cache": "HIT",
-        },
-      });
-    }
+  const cachedData = getCache(cacheKey);
 
-  const { data, error } = await supabaseClient.rpc("get_koi_summary");
+  if (cachedData) {
+    return new Response(JSON.stringify(cachedData), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+        "X-Cache": "HIT",
+      },
+    });
+  }
 
-  if (error) {
+  try {
+    const data = await prisma.$queryRaw`SELECT * FROM get_koi_summary()`;
+
+    setCache(cacheKey, data, 3000); // cache for 5 minutes
+
+    return new Response(JSON.stringify(data), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error: any) {
     return new Response(
       JSON.stringify({
         message: "An error occurred while fetching koi data",
@@ -31,11 +36,4 @@ export async function GET(req: Request) {
       }
     );
   }
-
-  setCache(cacheKey, data, 3000); // cache for 5 minutes
-
-  return new Response(JSON.stringify(data), {
-    status: 200,
-    headers: { "Content-Type": "application/json" },
-  });
 }
