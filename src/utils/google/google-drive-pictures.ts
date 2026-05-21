@@ -28,7 +28,7 @@ export async function getImageBlobById(pictureId: string) {
       return String(baseName).toLocaleLowerCase() === String(pictureId).toLocaleLowerCase();
     });
 
-    console.log("Matched file:", matchedFile);
+    // console.log("Matched file:", matchedFile);
 
     if (matchedFile) {
       const fileId = matchedFile.id;

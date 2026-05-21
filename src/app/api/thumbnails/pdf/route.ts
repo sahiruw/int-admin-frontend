@@ -66,8 +66,13 @@ export async function POST(req: NextRequest) {
       const y = marginY + row * (cellHeight + spacingY);
     
       // Use actual image ratio (fall back to square if missing)
-      const originalWidth = item.imageSize?.width || 1; 
-      const originalHeight = item.imageSize?.height || 1;
+      let originalWidth = item.imageSize?.width || 1; 
+      let originalHeight = item.imageSize?.height || 1;
+
+      if (originalWidth > originalHeight){
+        [originalHeight, originalWidth] = [originalWidth, originalHeight];
+      }
+      
       const aspectRatio = originalWidth / originalHeight;
 
       // Max bounds inside the cell (say 60% of cell height for image)
@@ -86,6 +91,15 @@ export async function POST(req: NextRequest) {
       // Center the image inside the cell
       const imageX = x + (cellWidth - imgWidth) / 2;
       const imageY = y;
+
+      // if (["w1207n001", "w1024n016"].includes(item.picture_id)){
+      //   console.log(item.picture_id, item.imageUrl) 
+      //   // console log all size data for debug
+      //   console.log(item.imageSize)
+        
+      // }
+      console.log(item.picture_id) 
+      console.log(item.imageSize)
 
       if (item.imageUrl) {
         pdf.addImage(
