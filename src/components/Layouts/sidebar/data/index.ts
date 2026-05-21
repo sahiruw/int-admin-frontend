@@ -65,6 +65,12 @@ export const NAV_DATA = {
         icon: TrendingUp, // Better represents sales growth/trends over time
         items: [],
       },
+      {
+        title: "Boarding List",
+        url: "/reports/boarding-list",
+        icon: Store,
+        items: [],
+      },
     ],
   },
   {
@@ -174,6 +180,12 @@ export const NAV_DATA = {
         title: "Sales By Period",
         url: "/reports/sales",
         icon: TrendingUp, // Better represents sales growth/trends over time
+        items: [],
+      },
+      {
+        title: "Boarding List",
+        url: "/reports/boarding-list",
+        icon: Store,
         items: [],
       },
     ],

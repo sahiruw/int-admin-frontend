@@ -1,28 +1,14 @@
 import { createClient } from "@/utils/supabase/supabase";
 import { withPermission } from "@/utils/auth";
 import { NextResponse } from "next/server";
-import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import prisma from "@/lib/prisma";
 
 export async function GET() {
   try {
     return await withPermission('users', 'read', async (user) => {
-      const supabaseClient = await createClient();
-
-      const { data, error } = await supabaseClient
-        .from("user_profiles")
-        .select("*")
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        return NextResponse.json(
-          {
-            message: "An error occurred while fetching users",
-            error: error.message,
-          },
-          { status: 500 }
-        );
-      }
-
+      const data = await prisma.user_profiles.findMany({
+        orderBy: { created_at: 'desc' }
+      });
       return NextResponse.json(data);
     });
   } catch (error: any) {
@@ -41,8 +27,6 @@ export async function POST(req: Request) {
       
       const tempSupabase = await createClient();
 
-      // console.log('Current user creating new user:', currentUser.email);
-      // Sign up the user
       const { data: authData, error: authError } = await tempSupabase.auth.signUp({
         email,
         password,
@@ -53,8 +37,6 @@ export async function POST(req: Request) {
           }
         }
       });
-
-      // console.log('Auth data:', authData, 'Auth error:', authError);
 
       if (authError) {
         return NextResponse.json(
@@ -76,32 +58,23 @@ export async function POST(req: Request) {
         );
       }
 
-      // Poll for the trigger to create the profile with exponential backoff
       const maxRetries = 5;
-      const baseDelay = 500; // Start with 500ms
+      const baseDelay = 500; 
       let attempt = 0;
       let profileCreated = false;
 
-      const supabaseClient = await createClient();
-
       while (attempt < maxRetries && !profileCreated) {
-        const { data: existingProfile, error: fetchError } = await supabaseClient
-          .from("user_profiles")
-          .select("*")
-          .eq('id', authData.user.id)
-          .single();
+        const existingProfile = await prisma.user_profiles.findUnique({
+          where: { id: authData.user.id }
+        });
 
         if (existingProfile) {
           profileCreated = true;
           break;
         }
 
-        if (fetchError) {
-          console.error(`Attempt ${attempt + 1} failed: ${fetchError.message}`);
-        }
-
         attempt++;
-        const delay = baseDelay * Math.pow(2, attempt - 1); // Exponential backoff
+        const delay = baseDelay * Math.pow(2, attempt - 1); 
         await new Promise(resolve => setTimeout(resolve, delay));
       }
 
@@ -113,24 +86,28 @@ export async function POST(req: Request) {
           { status: 500 }
         );
       }
-      // Now update the user profile with the correct role using our server client
-      // const supabaseClient = await createClient();
-      const { data: profileData, error: profileError } = await supabaseClient
-        .from("user_profiles")
-        .update({ role, full_name })
-        .eq('id', authData.user.id)
-        .select()
-        .single();
+
+      let profileData;
+      let profileError = null;
+      try {
+        profileData = await prisma.user_profiles.update({
+          where: { id: authData.user.id },
+          data: { role, full_name }
+        });
+      } catch (err: any) {
+        profileError = err;
+      }
 
       if (profileError) {
-        // Try to fetch the profile first in case it was already created correctly
-        const { data: existingProfile, error: fetchError } = await supabaseClient
-          .from("user_profiles")
-          .select("*")
-          .eq('id', authData.user.id)
-          .single();
-
-        if (fetchError) {
+        try {
+          const existingProfile = await prisma.user_profiles.findUnique({
+            where: { id: authData.user.id }
+          });
+          return NextResponse.json({
+            message: "User created successfully",
+            data: existingProfile,
+          });
+        } catch (fetchError: any) {
           return NextResponse.json(
             {
               message: "User created but profile setup failed",
@@ -139,11 +116,6 @@ export async function POST(req: Request) {
             { status: 500 }
           );
         }
-
-        return NextResponse.json({
-          message: "User created successfully",
-          data: existingProfile,
-        });
       }
 
       return NextResponse.json({
@@ -162,26 +134,26 @@ export async function POST(req: Request) {
 export async function PUT(req: Request) {
   try {
     return await withPermission('users', 'update', async (currentUser) => {
-      const supabaseClient = await createClient();
       const body = await req.text();
       const { id, role, full_name, avatar_url } = JSON.parse(body);
 
-      // Prevent users from changing their own role unless they're updating other fields
       const updates: any = {};
       if (full_name !== undefined) updates.full_name = full_name;
       if (avatar_url !== undefined) updates.avatar_url = avatar_url;
       
-      // Only allow role changes if user is not updating themselves
       if (role !== undefined && id !== currentUser.id) {
         updates.role = role;
       }
 
-      const { data, error } = await supabaseClient
-        .from("user_profiles")
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
+      let data, error;
+      try {
+        data = await prisma.user_profiles.update({
+          where: { id },
+          data: updates
+        });
+      } catch (err: any) {
+        error = err;
+      }
 
       if (error) {
         return NextResponse.json(
@@ -209,11 +181,9 @@ export async function PUT(req: Request) {
 export async function DELETE(req: Request) {
   try {
     return await withPermission('users', 'delete', async (currentUser) => {
-      const supabaseClient = await createClient();
       const body = await req.text();
       const { id } = JSON.parse(body);
 
-      // Prevent users from deleting themselves
       if (id === currentUser.id) {
         return NextResponse.json(
           { message: "You cannot delete your own account" },
@@ -221,10 +191,14 @@ export async function DELETE(req: Request) {
         );
       }
 
-      const { data, error } = await supabaseClient
-        .from("user_profiles")
-        .delete()
-        .eq('id', id);
+      let data, error;
+      try {
+        data = await prisma.user_profiles.delete({
+          where: { id }
+        });
+      } catch (err: any) {
+        error = err;
+      }
 
       if (error) {
         return NextResponse.json(

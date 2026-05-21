@@ -81,7 +81,7 @@ const MultiSelect: React.FC<DropdownProps> = ({ id }) => {
 
   useEffect(() => {
     const clickHandler = ({ target }: MouseEvent) => {
-      if (!dropdownRef.current) return;
+      if (!dropdownRef.current || !trigger.current) return;
       if (
         !show ||
         dropdownRef.current.contains(target) ||
@@ -92,7 +92,7 @@ const MultiSelect: React.FC<DropdownProps> = ({ id }) => {
     };
     document.addEventListener("click", clickHandler);
     return () => document.removeEventListener("click", clickHandler);
-  }, []);
+  }, [show]);
 
   return (
     <div className="relative z-50">
@@ -189,7 +189,6 @@ const MultiSelect: React.FC<DropdownProps> = ({ id }) => {
                   }`}
                   ref={dropdownRef}
                   onFocus={() => setShow(true)}
-                  onBlur={() => setShow(false)}
                 >
                   <div className="flex w-full flex-col">
                     {options.map((option, index) => (

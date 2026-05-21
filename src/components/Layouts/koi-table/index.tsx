@@ -12,10 +12,51 @@ import {
 import { ConfirmationDialog } from "@/components/Layouts/ConfirmationDialog";
 import { cn } from "@/lib/utils";
 import dayjs from "dayjs";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { KoiInfo } from "@/types/koi";
 import { toast } from "react-hot-toast";
 import { useAuth } from "@/hooks/use-auth";
+
+function KoiThumbnail({ pictureId }: { pictureId: string }) {
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [hasError, setHasError] = useState(false);
+  const src = `/api/koi/thumbnail?picture_id=${encodeURIComponent(pictureId)}`;
+
+  useEffect(() => {
+    setIsLoaded(false);
+    setHasError(false);
+  }, [pictureId]);
+
+  return (
+    <div className="relative w-14 h-14 rounded-md overflow-hidden border border-gray-200 dark:border-dark-3 bg-gray-50 dark:bg-dark-2">
+      {!isLoaded && !hasError && (
+        <div className="absolute inset-0 animate-pulse bg-gray-200 dark:bg-gray-700" />
+      )}
+
+      {hasError ? (
+        <div className="absolute inset-0 flex items-center justify-center text-[10px] text-gray-500 dark:text-gray-400">
+          No image
+        </div>
+      ) : (
+        <img
+          src={src}
+          alt={`Koi ${pictureId}`}
+          loading="lazy"
+          decoding="async"
+          className={cn(
+            "w-full h-full object-cover transition-opacity duration-200",
+            isLoaded ? "opacity-100" : "opacity-0",
+          )}
+          onLoad={() => setIsLoaded(true)}
+          onError={() => {
+            setHasError(true);
+            setIsLoaded(true);
+          }}
+        />
+      )}
+    </div>
+  );
+}
 
 
 export function KoiInfoTable({ data, setEditingKoiId, onDataChange }: { 
@@ -147,6 +188,7 @@ export function KoiInfoTable({ data, setEditingKoiId, onDataChange }: {
         <Table>
           <TableHeader>
             <TableRow className="border-none bg-[#F7F9FC] dark:bg-dark-2 [&>th]:py-1 [&>th]:text-base [&>th]:text-dark [&>th]:dark:text-white">
+              <TableHead>Image</TableHead>
               <TableHead>Koi Info</TableHead>
               <TableHead>Breeder</TableHead>
               <TableHead>Cost & Pricing</TableHead>
@@ -161,13 +203,16 @@ export function KoiInfoTable({ data, setEditingKoiId, onDataChange }: {
           </TableHeader>
 
           <TableBody>
-            {paginatedData.map((row, index) => (
+            {paginatedData.map((row) => (
 
-              <TableRow key={index} className="border-[#eee] dark:border-dark-3">
+              <TableRow key={row.picture_id} className="border-[#eee] dark:border-dark-3">
+                <TableCell>
+                  <KoiThumbnail pictureId={row.picture_id} />
+                </TableCell>
                 <TableCell>
                   <div className="flex flex-col">
                     <p className="font-medium text-dark dark:text-white">
-                      {row.picture_id} - {row.variety_name} ({row.koi_id})
+                  {row.picture_id} - {row.koi_id} ({row.variety_name})
                     </p>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
                       {row.sex} | {row.age} yrs | {row.size_cm} cm
@@ -355,7 +400,7 @@ const SalesCell = (jpy?: number | null, usd?: number | null) => {
             className="w-3 h-3 rounded-full bg-[#BC002D]"
             aria-label="Red Ball"
           ></span>
-          ¥{jpy.toLocaleString()}
+          ¥{Math.round(jpy).toLocaleString()}
         </span>)}
 
         {usd && usd > 0 && (<span className="flex items-center gap-1">
@@ -364,7 +409,7 @@ const SalesCell = (jpy?: number | null, usd?: number | null) => {
             alt="US Flag"
             className="w-3 h-3 rounded-full"
           />
-          ${usd.toLocaleString()}
+          ${Math.round(usd).toLocaleString()}
         </span>)}
       </p>
     </TableCell>

@@ -1,7 +1,7 @@
-import { createClient } from "@/utils/supabase/supabase";
+import prisma from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 
 export async function GET(req: Request) {
-  const supabaseClient = await createClient();
   const { searchParams } = new URL(req.url);
   const startDate = searchParams.get("start") || "1900-01-01";
   const endDate = searchParams.get("end") || "2050-12-31";
@@ -11,14 +11,20 @@ export async function GET(req: Request) {
   let offset = 0;
 
   while (true) {
-    const { data, error } = await supabaseClient
-      .from("koi_sales_view")
-      .select("*")
-      .range(offset, offset + limit - 1)
-      .gte("purchase_date", startDate)
-      .lte("purchase_date", endDate);
+    try {
+      const data: any[] = await prisma.$queryRaw`
+        SELECT * FROM koi_sales_view
+        WHERE purchase_date >= ${startDate}::date AND purchase_date <= ${endDate}::date
+        LIMIT ${limit} OFFSET ${offset}
+      `;
 
-    if (error) {
+      if (!data || data.length === 0) {
+        break; // No more data to fetch
+      }
+
+      allData.push(...data);
+      offset += limit;
+    } catch (error: any) {
       return new Response(
         JSON.stringify({
           message: "An error occurred while fetching koi sales data",
@@ -30,13 +36,6 @@ export async function GET(req: Request) {
         }
       );
     }
-    console.log(data.length);
-    if (!data || data.length === 0) {
-      break; // No more data to fetch
-    }
-
-    allData.push(...data);
-    offset += limit;
   }
 
   allData = allData.map(
@@ -49,7 +48,6 @@ export async function GET(req: Request) {
     usd_profit_total: sale.usd_total_sale - sale.usd_total_cost,
     total_kgs: sale.box_count * sale.weight_of_box,
   }));
-
 
   return new Response(JSON.stringify(allData), {
     status: 200,

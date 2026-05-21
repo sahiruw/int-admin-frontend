@@ -1,5 +1,6 @@
 import { createClient } from "@/utils/supabase/supabase";
 import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
 
 export async function POST(req: Request) {
   try {
@@ -16,11 +17,17 @@ export async function POST(req: Request) {
     }
 
     // Get current user profile to get the avatar URL
-    const { data: profile, error: profileError } = await supabaseClient
-      .from('user_profiles')
-      .select('avatar_url')
-      .eq('id', user.id)
-      .single();
+    let profileError = null;
+    let profile: any = null;
+    try {
+      profile = await prisma.user_profiles.findUnique({
+        where: { id: user.id },
+        select: { avatar_url: true }
+      });
+      if (!profile) throw new Error("Profile not found");
+    } catch (err: any) {
+      profileError = err;
+    }
     
     if (profileError || !profile) {
       return NextResponse.json(
@@ -50,13 +57,15 @@ export async function POST(req: Request) {
     }
 
     // Update user profile to remove avatar URL
-    const { error: updateError } = await supabaseClient
-      .from('user_profiles')
-      .update({ 
-        avatar_url: null,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', user.id);
+    let updateError = null;
+    try {
+      await prisma.user_profiles.update({
+        where: { id: user.id },
+        data: { avatar_url: null, updated_at: new Date() }
+      });
+    } catch (err: any) {
+      updateError = err;
+    }
 
     if (updateError) {
       console.error("Error updating profile:", updateError);

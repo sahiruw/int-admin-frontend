@@ -1,4 +1,5 @@
-import { createClient } from "@/utils/supabase/supabase";
+import prisma from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { KoiInfo } from "@/types/koi";
 import {
   clearCacheMatchingKeyPattern,
@@ -11,8 +12,6 @@ import {
 } from "@/utils/customer-mapping";
 
 export async function GET(request: Request) {
-  const supabaseClient = await createClient();
-
   const { searchParams } = new URL(request.url);
   const breederId = searchParams.get("breeder_id");
   const shipped = searchParams.get("shipped");
@@ -36,17 +35,27 @@ export async function GET(request: Request) {
   let offset = 0;
 
   while (true) {
-    let query = supabaseClient
-      .from("koi_details_view")
-      .select("*")
-      .range(offset, offset + limit - 1);
+    try {
+      let whereClauses = [];
+      if (breederId) whereClauses.push(Prisma.sql`breeder_id = ${parseInt(breederId)}`);
+      if (shipped) {
+        if (shipped === 'true') whereClauses.push(Prisma.sql`shipped IS TRUE`);
+        else if (shipped === 'false') whereClauses.push(Prisma.sql`shipped IS NOT TRUE`);
+      }
 
-    if (breederId) query = query.eq("breeder_id", breederId);
-    if (shipped) query = query.eq("shipped", shipped);
+      let whereSql = whereClauses.length > 0 ? Prisma.sql`WHERE ${Prisma.join(whereClauses, ' AND ')}` : Prisma.empty;
 
-    const { data, error } = await query;
+      const data: any[] = await prisma.$queryRaw`
+        SELECT * FROM koi_details_view
+        ${whereSql}
+        LIMIT ${limit} OFFSET ${offset}
+      `;
 
-    if (error) {
+      if (!data || data.length === 0) break;
+
+      allData.push(...data);
+      offset += limit;
+    } catch (error: any) {
       return new Response(
         JSON.stringify({
           message: "An error occurred while fetching koi data",
@@ -58,11 +67,6 @@ export async function GET(request: Request) {
         }
       );
     }
-
-    if (!data || data.length === 0) break;
-
-    allData.push(...data);
-    offset += limit;
   }
 
   setCache(cacheKey, allData, 3000); // cache for 5 minutes
@@ -77,14 +81,13 @@ export async function GET(request: Request) {
 }
 
 export async function POST(req: Request) {
-  const supabaseClient = await createClient();
-
   const body = await req.text();
   let { payload } = JSON.parse(body);
 
-  const { data: config, error: configError } = await supabaseClient
-    .from("configuration")
-    .select("*");
+  const config = await prisma.configuration.findMany({
+    orderBy: { created_at: 'desc' },
+    take: 1
+  });
 
   if (config && config.length > 0) {
     payload = payload.map((koi: any) => {
@@ -104,7 +107,8 @@ export async function POST(req: Request) {
         },
       }
     );
-  } // Extract unique customer names and shipping location names from payload
+  }
+
   const customerNames = payload
     .filter((koi: any) => koi.sold_to)
     .map((koi: any) => koi.sold_to);
@@ -113,37 +117,57 @@ export async function POST(req: Request) {
     .filter((koi: any) => koi.ship_to)
     .map((koi: any) => koi.ship_to);
 
-  // Map customer names and location names to their IDs
   const customerMap = await mapCustomerNamesToIds(customerNames);
   const locationMap = await mapShippingLocationNamesToIds(locationNames);
 
-  // Update payload with customer_id and ship_to fields based on the names
   payload = payload.map((koi: any) => {
     const updatedKoi = { ...koi };
 
-    // Map customer_name to customer_id
     if (koi.sold_to && customerMap.has(koi.sold_to)) {
       updatedKoi.customer_id = customerMap.get(koi.sold_to);
     }
 
-    // Map location_name to ship_to
     if (koi.ship_to && locationMap.has(koi.ship_to)) {
       updatedKoi.ship_to = locationMap.get(koi.ship_to);
     }
-    delete updatedKoi.sold_to; // Remove the original name field
+    delete updatedKoi.sold_to; 
     return updatedKoi;
   });
 
-  // console.log("Processed payload with mapped IDs:", payload[0]);
-  const { data, error } = await supabaseClient.from("koiinfo").upsert(payload);
+  try {
+    let data;
+    if (Array.isArray(payload)) {
+      data = await Promise.all(payload.map((p: any) => prisma.koiinfo.upsert({
+        where: { picture_id: p.picture_id },
+        update: p,
+        create: p
+      })));
+    } else {
+      data = await prisma.koiinfo.upsert({
+        where: { picture_id: payload.picture_id },
+        update: payload,
+        create: payload
+      });
+    }
 
-  if (error) {
+    clearCacheMatchingKeyPattern("koi_*");  
+    return new Response(
+      JSON.stringify({
+        message: "Koi added successfully",
+        data,
+      }),
+      {
+        status: 201,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  } catch (error: any) {
     let errMsg = error.message;
     console.log("Error", errMsg);
 
-    // check if the error is due to null values
-    if (error && error.code === "22P02") {
-      // koi with any null field
+    if (error && error.code === "P2002") {
       let nullpayload = payload.filter((koi: any) => {
         return Object.values(koi).some((value) => !value);
       }).map((koi: any) => koi.picture_id);
@@ -164,32 +188,32 @@ export async function POST(req: Request) {
       }
     );
   }
-  clearCacheMatchingKeyPattern("koi_*");  return new Response(
-    JSON.stringify({
-      message: "Koi added successfully",
-      data,
-    }),
-    {
-      status: 201,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-  );
 }
 
 export async function DELETE(req: Request) {
-  const supabaseClient = await createClient();
+  try {
+    const body = await req.text();
+    const { picture_id } = JSON.parse(body);
 
-  const body = await req.text();
-  const { picture_id } = JSON.parse(body);
+    const data = await prisma.koiinfo.delete({
+      where: { picture_id }
+    });
 
-  const { data, error } = await supabaseClient
-    .from("koiinfo")
-    .delete()
-    .eq("picture_id", picture_id);
+    clearCacheMatchingKeyPattern("koi_*");
 
-  if (error) {
+    return new Response(
+      JSON.stringify({
+        message: "Koi deleted successfully",
+        data,
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  } catch (error: any) {
     return new Response(
       JSON.stringify({
         message: "An error occurred while deleting koi",
@@ -203,18 +227,4 @@ export async function DELETE(req: Request) {
       }
     );
   }
-  clearCacheMatchingKeyPattern("koi_*");
-
-  return new Response(
-    JSON.stringify({
-      message: "Koi deleted successfully",
-      data,
-    }),
-    {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-  );
 }

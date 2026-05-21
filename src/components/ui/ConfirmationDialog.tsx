@@ -1,4 +1,5 @@
 import React from 'react';
+import { Modal, ModalFooter, ConfirmButton, CancelButton } from '@/components/ui/Modal';
 
 interface ConfirmationDialogProps {
   isOpen: boolean;
@@ -23,22 +24,6 @@ export default function ConfirmationDialog({
 }: ConfirmationDialogProps) {
   if (!isOpen) return null;
 
-  // Define color schemes based on type
-const colors = {
-    danger: {
-        button: 'bg-red-600 hover:bg-red-700',
-        icon: 'text-red-600',
-    },
-    warning: {
-        button: 'bg-yellow-500 hover:bg-yellow-600',
-        icon: 'text-yellow-500',
-    },
-    info: {
-        button: 'bg-blue-600 hover:bg-blue-700',
-        icon: 'text-blue-600',
-    },
-};
-
   // Icons for different dialog types
   const icons = {
     danger: (
@@ -59,8 +44,8 @@ const colors = {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="w-full max-w-md rounded-sm border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark animate-fadeIn">
+    <Modal isOpen={isOpen} onClose={onCancel} contentClassName="pb-0">
+      <div className="animate-fadeIn">
         <div className="mb-5 text-center">
           <div className="mb-4">
             {icons[type]}
@@ -72,22 +57,20 @@ const colors = {
             {message}
           </p>
         </div>
-        
-        <div className="flex gap-3">
-          <button
-            onClick={onCancel}
-            className="flex-1 rounded border border-stroke px-6 py-2.5 text-black hover:shadow-1 dark:border-strokedark dark:text-white"
-          >
+
+        <ModalFooter className="-mx-6 mt-6 mb-0 rounded-b-lg">
+          <CancelButton onClick={onCancel} className="flex-1">
             {cancelLabel}
-          </button>
-          <button
+          </CancelButton>
+          <ConfirmButton
             onClick={onConfirm}
-            className={`flex-1 rounded px-6 py-2.5 font-medium text-white ${colors[type].button}`}
+            className="flex-1"
+            variant={type === 'danger' ? 'danger' : type === 'warning' ? 'warning' : 'primary'}
           >
             {confirmLabel}
-          </button>
-        </div>
+          </ConfirmButton>
+        </ModalFooter>
       </div>
-    </div>
+    </Modal>
   );
 }

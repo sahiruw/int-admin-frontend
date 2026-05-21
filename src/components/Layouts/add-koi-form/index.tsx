@@ -1,14 +1,12 @@
 'use client';
 import InputGroup from "@/components/FormElements/InputGroup";
-import { TextAreaGroup } from "@/components/FormElements/InputGroup/text-area";
-import { Select } from "@/components/FormElements/select";
-import { RadioInput } from "@/components/FormElements/radio";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { FilteredTextboxDropdown } from "@/components/FormElements/filteredselect";
 import { Picker } from "@/components/FormElements/Dropdown";
 import { Breeder, Customer, KoiInfo, Location, Varity } from "@/types/koi";
 import { toast } from "react-hot-toast";
 import { useLoading } from "@/app/loading-context";
+import { Modal, ModalFooter, ConfirmButton, CancelButton } from "@/components/ui/Modal";
 
 export function AddKoiForm({ koi, onClose, setData }: { koi: KoiInfo; onClose: () => void, setData: (data: KoiInfo[]) => void }) {
     const { setLoading } = useLoading();
@@ -147,11 +145,14 @@ export function AddKoiForm({ koi, onClose, setData }: { koi: KoiInfo; onClose: (
     }
 
     return (
-        <div
-            className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
-            onClick={onClose}
+        <Modal
+            isOpen={true}
+            onClose={onClose}
+            title="Edit Koi"
+            className="max-w-7xl"
+            contentClassName="pb-0"
         >
-            <div className="bg-white dark:bg-dark-2 p-6 rounded-lg shadow-md" onClick={(e) => e.stopPropagation()}>
+            <div className="max-h-[80vh] overflow-y-auto pr-2">
                 <div className="mb-4.5 flex flex-col gap-4.5 xl:flex-row">
                     <FilteredTextboxDropdown
                         label="Variety"
@@ -252,22 +253,11 @@ export function AddKoiForm({ koi, onClose, setData }: { koi: KoiInfo; onClose: (
                         />
                     </div>
                 </div>
-
-                <div className="mt-6 flex w-full justify-end gap-4">
-                    <button
-                        className="rounded-lg bg-gray-300 p-[13px] font-medium text-gray-700 hover:bg-gray-400"
-                        onClick={onClose}
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        className="rounded-lg bg-primary p-[13px] font-medium text-white hover:bg-opacity-90"
-                        onClick={handleSave}
-                    >
-                        Save
-                    </button>
-                </div>
             </div>
-        </div>
+            <ModalFooter className="-mx-6 mt-6 mb-0 rounded-b-lg">
+                <CancelButton onClick={onClose}>Cancel</CancelButton>
+                <ConfirmButton onClick={handleSave}>Save</ConfirmButton>
+            </ModalFooter>
+        </Modal>
     );
 }

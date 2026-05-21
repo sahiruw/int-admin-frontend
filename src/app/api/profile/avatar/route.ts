@@ -1,5 +1,6 @@
 import { createClient } from "@/utils/supabase/supabase";
 import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
 
 export async function POST(req: Request) {
   try {
@@ -50,10 +51,15 @@ export async function POST(req: Request) {
       .getPublicUrl(fileName);
 
     // Update user profile with new avatar URL
-    const { error: updateError } = await supabaseClient
-      .from('user_profiles')
-      .update({ avatar_url: publicUrl, updated_at: new Date().toISOString() })
-      .eq('id', user.id);
+    let updateError = null;
+    try {
+      await prisma.user_profiles.update({
+        where: { id: user.id },
+        data: { avatar_url: publicUrl, updated_at: new Date() }
+      });
+    } catch (err: any) {
+      updateError = err;
+    }
 
     if (updateError) {
       console.error("Error updating profile:", updateError);

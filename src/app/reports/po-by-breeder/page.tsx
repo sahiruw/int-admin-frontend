@@ -1,13 +1,29 @@
 'use client'
+
 import { useLoading } from '@/app/loading-context';
 import { groupRecords } from '@/app/reports/inv-pl-by-date/page';
 import { Picker } from '@/components/FormElements/Dropdown';
 import { FilteredTextboxDropdown } from '@/components/FormElements/filteredselect'
 import { DataTable } from '@/components/Layouts/ShippingTable';
 import { cn } from '@/lib/utils';
-import { Breeder, KoiInfo, ShippingData } from '@/types/koi';
+import { KoiInfo, ShippingData } from '@/types/koi';
 import React, { useEffect, useMemo, useState } from 'react'
 import { toast } from 'react-hot-toast'
+
+const normalizeDateOnly = (value: unknown) => {
+  if (!value) return null;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    return trimmed.includes("T") ? trimmed.split("T")[0] : trimmed;
+  }
+
+  if (value instanceof Date) {
+    return value.toISOString().split("T")[0];
+  }
+
+  return null;
+};
 
 const page = () => {
   const { setLoading } = useLoading();
@@ -21,9 +37,12 @@ const page = () => {
     setLoading(true);
     fetch(`/api/koi?shipped=false`, { next: { revalidate: false } })
       .then((response) => response.json())
-      .then((data) => {
-        setData(groupRecords(data));
-
+      .then((records) => {
+        const normalizedRecords = (records || []).map((record: any) => ({
+          ...record,
+          date: normalizeDateOnly(record.date),
+        }));
+        setData(groupRecords(normalizedRecords));
       })
       .catch((error) => {
         console.error('Error fetching data:', error);
@@ -35,34 +54,35 @@ const page = () => {
   }, []);
 
   const breederOptions = useMemo(() => {
-    let fdata = data?.reduce((acc: { label: string; value: string }[], breeder: KoiInfo) => {
-      if (!acc.some(item => item.value === String(breeder.breeder_id))) {
+    return data?.reduce((acc: { label: string; value: string }[], breeder: KoiInfo) => {
+      const breederId = String(breeder.breeder_id);
+      if (!acc.some(item => item.value === breederId)) {
         acc.push({
           label: breeder.breeder_name,
-          value: String(breeder.breeder_id),
+          value: breederId,
         });
       }
       return acc;
     }, [])
       .sort((a, b) => a.label.localeCompare(b.label));
-    return fdata
   }, [data]);
 
   useEffect(() => {
-    if (selectedBreeder) {
-      const filtered = data?.filter((item) => String(item.breeder_id) === selectedBreeder &&
-        (selectedDate ? item.date === selectedDate || selectedDate === "Any" : true))
-      setFilteredData(filtered);
+    if (!selectedBreeder) {
+      setFilteredData(data);
+      return;
     }
-    else {
-      setSelectedBreeder(breederOptions)
-    }
+
+    const filtered = data?.filter((item) =>
+      String(item.breeder_id) === selectedBreeder &&
+      (selectedDate ? item.date === selectedDate || selectedDate === "Any" : true)
+    );
+    setFilteredData(filtered);
   }, [selectedBreeder, data, selectedDate]);
 
   useEffect(() => {
     setSelectedDate(null);
   }, [selectedBreeder]);
-
 
   const handleSubmit = async () => {
     try {
@@ -70,11 +90,15 @@ const page = () => {
       const payload = Object.entries(shippingData).map(([key, value]) => ({
         picture_id: key,
         ...Object.fromEntries(
-          Object.entries(value).map(([k, v]) => [k, v === "" ? null : v])
+          Object.entries(value).map(([k, v]) => [k, v === "" ? null : v]),
         ),
       }));
 
-      console.log("Payload", payload);
+      if (payload.length === 0) {
+        toast("No changes to save");
+        return;
+      }
+
       const response = await fetch('/api/shipping', {
         method: 'PUT',
         headers: {
@@ -82,26 +106,39 @@ const page = () => {
         },
         body: JSON.stringify({ payload }),
       });
+
       const result = await response.json();
+      if (!response.ok) {
+        toast.error(result?.error || "Error saving data");
+        return;
+      }
 
-      if (response.ok) {
-  toast.success("Data saved successfully");
+      const savedIds = new Set<string>(result?.savedPictureIds || []);
+      const failedIds = new Set<string>(
+        (result?.failures || []).map((item: { picture_id: string }) => item.picture_id),
+      );
 
-  // ✅ Update full data set
-  const updatedData = data.map((item) => {
-    const updatedItem = payload.find((record) => record.picture_id === item.picture_id);
-    if (updatedItem) {
-      return { ...item, ...updatedItem };
-    }
-    return item;
-  });
+      const updatedData = data.map((item) => {
+        if (!savedIds.has(item.picture_id)) return item;
+        const updatedItem = payload.find((record) => record.picture_id === item.picture_id);
+        return updatedItem ? { ...item, ...updatedItem } : item;
+      });
 
-  setData(updatedData); // ✅ Triggers the filter useEffect
-  setShippingData({});
-} else {
-  toast.error("Error saving data");
-}
+      setData(updatedData);
 
+      if (failedIds.size > 0) {
+        setShippingData((prev) =>
+          Object.fromEntries(
+            Object.entries(prev).filter(([pictureId]) => failedIds.has(pictureId)),
+          ),
+        );
+        toast.error(
+          `Saved ${result?.successCount || 0} row(s), ${result?.failedCount || 0} failed. Please retry failed rows.`,
+        );
+      } else {
+        setShippingData({});
+        toast.success("Data saved successfully");
+      }
     }
     catch (error) {
       console.error('Error:', error);
@@ -114,16 +151,22 @@ const page = () => {
 
   const uniqueDates = useMemo(
     () =>
-      ["Any"].concat(Array.from(new Set(data.filter((item) => String(item.breeder_id) === selectedBreeder).map((record) => record.date))).sort((a, b) =>
-        new Date(b).getTime() - new Date(a).getTime()
+      ["Any"].concat(Array.from(
+        new Set(
+          data
+            .filter((item) => String(item.breeder_id) === selectedBreeder)
+            .map((record) => record.date),
+        ),
+      ).sort((a, b) =>
+        new Date(b).getTime() - new Date(a).getTime(),
       )),
-    [filteredData]
+    [data, selectedBreeder]
   );
 
   const handleThumbnailSheetGeneration = async () => {
     setLoading(true);
     try {
-      const data = filteredData.map(row => ({
+      const thumbnailItems = filteredData.map(row => ({
         picture_id: row.picture_id,
         variety: row.variety_name,
         size: row.size_cm,
@@ -134,7 +177,7 @@ const page = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ items: data }),
+        body: JSON.stringify({ items: thumbnailItems }),
       });
 
       if (!response.ok) {
@@ -146,14 +189,12 @@ const page = () => {
 
       const link = document.createElement('a');
       link.href = url;
-      link.download = 'thumbnail-sheet.pdf'; // Name of the downloaded file
+      link.download = 'thumbnail-sheet.pdf';
       document.body.appendChild(link);
       link.click();
       link.remove();
 
-      // Cleanup the blob URL after download
       window.URL.revokeObjectURL(url);
-
     } catch (error) {
       console.error('Error generating or downloading PDF:', error);
     }
@@ -166,7 +207,7 @@ const page = () => {
     setLoading(true)
 
     try {
-      let data = {
+      const reportPayload = {
         date: selectedDate,
         breeder: breederOptions.find((item: any) => item.value === selectedBreeder)?.label,
         breederID: selectedBreeder,
@@ -178,7 +219,7 @@ const page = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ payload: data }),
+        body: JSON.stringify({ payload: reportPayload }),
       })
         .then(async (res) => {
           if (!res.ok) throw new Error("Failed to generate report");
@@ -186,14 +227,12 @@ const page = () => {
           const blob = await res.blob();
           const url = window.URL.createObjectURL(blob);
 
-          // Create a temporary link to download the file
           const link = document.createElement("a");
           link.href = url;
           link.download = `Koi_Report_${Date.now()}.xlsx`;
           document.body.appendChild(link);
           link.click();
 
-          // Cleanup
           link.remove();
           window.URL.revokeObjectURL(url);
 
@@ -213,13 +252,11 @@ const page = () => {
       console.error("Error:", error);
       toast.error("Failed to generate report");
     }
-
-
   }
 
 
   return (
-    <div className="rounded-[10px] bg-white shadow-1 dark:bg-gray-dark dark:shadow-card px-8 pt-4 space-y-4" style={{ height: "83vh", overflowY: "auto" }}>
+    <div className="rounded-[10px] bg-white shadow-1 dark:bg-gray-dark dark:shadow-card px-8 pt-4 space-y-4" style={{ height: "85vh", overflowY: "auto" }}>
       <div className="flex items-end justify-between w-full gap-4">
         <div className="flex items-end gap-4">
           <FilteredTextboxDropdown
@@ -274,8 +311,6 @@ const page = () => {
           </button>
         </div>
       </div>
-
-
 
       <DataTable
         rawData={filteredData}
