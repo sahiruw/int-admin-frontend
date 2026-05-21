@@ -256,7 +256,7 @@ const page = () => {
 
 
   return (
-    <div className="rounded-[10px] bg-white shadow-1 dark:bg-gray-dark dark:shadow-card px-8 pt-4 space-y-4" style={{ height: "83vh", overflowY: "auto" }}>
+    <div className="rounded-[10px] bg-white shadow-1 dark:bg-gray-dark dark:shadow-card px-8 pt-4 space-y-4" style={{ height: "85vh", overflowY: "auto" }}>
       <div className="flex items-end justify-between w-full gap-4">
         <div className="flex items-end gap-4">
           <FilteredTextboxDropdown

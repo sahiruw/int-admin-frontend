@@ -64,7 +64,7 @@ export function DataTable({
         console.error('Error fetching shipping cost:', error);
       }
     };
-    
+
     fetchShippingCost();
   }, []);
 
@@ -81,7 +81,7 @@ export function DataTable({
       });
       return updated
     });
-  
+
     setShippingData((prev) => ({
       ...prev,
       [picture_id]: {
@@ -131,22 +131,22 @@ export function DataTable({
 
   const applyMasterDateToSelected = () => {
     if (!masterShipDate || selectedRows.size === 0) return;
-    
+
     selectedRows.forEach(picture_id => {
       handleInputChange(picture_id, "date", masterShipDate);
     });
-    
+
     setSelectedRows(new Set()); // Clear selection after applying
   };
 
   const applyMasterDateToAll = () => {
     if (!masterShipDate) return;
-    
+
     data.forEach(row => {
       handleInputChange(row.picture_id, "date", masterShipDate);
     });
   };
-  
+
 
   const totalsByGroup = useMemo(() => {
     console.log("Calculating totals by group...", data);
@@ -168,7 +168,7 @@ export function DataTable({
             className="px-3 py-1 border border-blue-300 dark:border-blue-600 rounded-md bg-white dark:bg-dark-2 text-sm "
           />
         </div>
-        
+
         <div className="flex items-center gap-2">
           <button
             onClick={applyMasterDateToSelected}
@@ -178,7 +178,7 @@ export function DataTable({
           >
             Apply to Selected ({selectedRows.size})
           </button>
-          
+
           <button
             onClick={applyMasterDateToAll}
             disabled={!masterShipDate}
@@ -187,15 +187,16 @@ export function DataTable({
             Apply to All
           </button>
         </div>
-        
+
         <div className="text-sm  text-blue-700 dark:text-blue-300 ml-auto">
           💡 Select rows by clicking checkboxes, then apply master date to save time
         </div>
       </div>
 
-      <div className="overflow-y-auto" style={{ maxHeight: "72vh", overflowY: "auto" }}>
+      <div className="overflow-y-auto" style={{ maxHeight: "68vh", overflowY: "auto" }}>
         <Table className="w-full table-fixed">
-          <TableHeader>            <TableRow className="sticky top-0 z-10 bg-[#F7F9FC] dark:bg-dark-2 border-none [&>th]:text-base [&>th]: [&>th]:text-dark [&>th]:dark:text-white">
+          <TableHeader>
+            <TableRow className="sticky top-0 z-10 bg-[#F7F9FC] dark:bg-dark-2 border-none [&>th]:text-base [&>th]: [&>th]:text-dark [&>th]:dark:text-white">
               <TableHead className="w-8">
                 <input
                   type="checkbox"
@@ -213,14 +214,7 @@ export function DataTable({
                   {header}
                 </TableHead>
               ))}
-              <TableHead className="w-auto " colSpan={7}>
-                Ship Info
-              </TableHead>
-            </TableRow>
 
-            <TableRow className="sticky z-10 bg-[#F7F9FC] dark:bg-dark-2 border-none [&>th]:text-base [&>th]: [&>th]:text-dark [&>th]:dark:text-white">
-              <TableHead />
-              <TableHead colSpan={4} />
               {input_columns.map((column) => (
                 <TableHead key={column.key} className="">{column.Header}</TableHead>
               ))}
@@ -240,8 +234,8 @@ export function DataTable({
             {data?.map((row, index) => {
               const isSelected = selectedRows.has(row.picture_id);
               return (
-                <TableRow 
-                  key={index} 
+                <TableRow
+                  key={index}
                   className={cn(
                     "border-[#eee] dark:border-dark-3",
                     isSelected && "bg-blue-50 dark:bg-blue-900/20"
@@ -296,8 +290,8 @@ export function DataTable({
                   </TableCell>
 
                   {input_columns?.map(({ key, Header, type }) => (
-                    <TableCell key={key} className="text-right">                      
-                    <input
+                    <TableCell key={key} className="text-right">
+                      <input
                         type={type}
                         value={getInputValue(row, key)}
                         onChange={(e) => handleInputChange(row.picture_id, key, e.target.value)}
@@ -307,7 +301,7 @@ export function DataTable({
                         )}
                       />
                     </TableCell>
-                  ))}                  
+                  ))}
                   <TableCell className="text-right">
                     {(row.box_count && row.weight_of_box) ? (
                       <div className="flex flex-col text-right">
@@ -328,7 +322,7 @@ export function DataTable({
                       onChange={(e) => handleInputChange(row.picture_id, "grouping", e.target.value)}
                       className="w-full text-right border border-gray-100 rounded-md p-2 "
                     />
-                  </TableCell>                  
+                  </TableCell>
                   <TableCell className="text-right">
                     {row.grouping && totalsByGroup[row.grouping] !== undefined ? (
                       <p className="text-dark dark:text-white">
@@ -347,28 +341,28 @@ export function DataTable({
 }
 
 export const calculateSCKOI = (data: (KoiInfo | KoiSaleRecord)[]): Record<string, number> => {
-    const groupTotals: Record<string, { numerator: number; denominator: number }> = {};
+  const groupTotals: Record<string, { numerator: number; denominator: number }> = {};
 
-    data.forEach(row => {
-      if (row.grouping && row.pcs) {
-        const group = row.grouping;
-        const weightSum = row.weight_of_box && row.box_count ? row.weight_of_box * row.box_count: 0;
-        const pcs = row.pcs;
+  data.forEach(row => {
+    if (row.grouping && row.pcs) {
+      const group = row.grouping;
+      const weightSum = row.weight_of_box && row.box_count ? row.weight_of_box * row.box_count : 0;
+      const pcs = row.pcs;
 
-        if (!groupTotals[group]) {
-          groupTotals[group] = { numerator: 0, denominator: 0 };
-        }
-
-        groupTotals[group].numerator += weightSum;
-        groupTotals[group].denominator += pcs;
+      if (!groupTotals[group]) {
+        groupTotals[group] = { numerator: 0, denominator: 0 };
       }
-    });
 
-    const result: Record<string, number> = {};
-    for (const group in groupTotals) {
-      const { numerator, denominator } = groupTotals[group];
-      result[group] = denominator !== 0 ? numerator / denominator : 0;
+      groupTotals[group].numerator += weightSum;
+      groupTotals[group].denominator += pcs;
     }
-    console.log(result)
-    return result;
+  });
+
+  const result: Record<string, number> = {};
+  for (const group in groupTotals) {
+    const { numerator, denominator } = groupTotals[group];
+    result[group] = denominator !== 0 ? numerator / denominator : 0;
   }
+  console.log(result)
+  return result;
+}
