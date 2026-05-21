@@ -7,6 +7,7 @@ import { User, UserRole } from '@/types/auth'
 import { createClient } from '@/utils/supabase/client'
 import toast from 'react-hot-toast'
 import ConfirmationDialog from '@/components/ui/ConfirmationDialog'
+import { Modal, ModalFooter, ConfirmButton, CancelButton } from '@/components/ui/Modal'
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([])
@@ -345,100 +346,82 @@ export default function UsersPage() {
         </div>
       </div>
 
-      {/* Register User Modal */}
-      {showRegisterModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="w-full max-w-md rounded-sm border border-stroke bg-white p-6 shadow-default dark:border-strokedark dark:bg-boxdark">
-            <div className="mb-6 flex items-center justify-between">
-              <h3 className="text-xl font-semibold text-black dark:text-white">
-                Register New User
-              </h3>
-              <button
-                onClick={() => setShowRegisterModal(false)}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={registerUser} className="space-y-4">
-              <div>
-                <label className="mb-2.5 block text-black dark:text-white">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  value={registerForm.full_name}
-                  onChange={(e) => setRegisterForm({ ...registerForm, full_name: e.target.value })}
-                  required
-                  className="w-full rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                  placeholder="Enter full name"
-                />
-              </div>
-
-              <div>
-                <label className="mb-2.5 block text-black dark:text-white">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  value={registerForm.email}
-                  onChange={(e) => setRegisterForm({ ...registerForm, email: e.target.value })}
-                  required
-                  className="w-full rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                  placeholder="Enter email address"
-                />
-              </div>
-
-              <div>
-                <label className="mb-2.5 block text-black dark:text-white">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  value={registerForm.password}
-                  onChange={(e) => setRegisterForm({ ...registerForm, password: e.target.value })}
-                  required
-                  minLength={6}
-                  className="w-full rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                  placeholder="Enter password (min 6 characters)"
-                />
-              </div>
-
-              <div>
-                <label className="mb-2.5 block text-black dark:text-white">
-                  Role
-                </label>
-                <select
-                  value={registerForm.role}
-                  onChange={(e) => setRegisterForm({ ...registerForm, role: e.target.value as UserRole })}
-                  className="w-full rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                >
-                  <option value="assistant">Assistant</option>
-                  <option value="admin">Administrator</option>
-                </select>
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowRegisterModal(false)}
-                  className="flex-1 rounded border border-stroke px-6 py-2 text-black hover:shadow-1 dark:border-strokedark dark:text-white"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={registerLoading}
-                  className="flex-1 rounded bg-primary px-6 py-2 font-medium text-white hover:bg-opacity-90 disabled:opacity-50"
-                >
-                  {registerLoading ? 'Creating...' : 'Create User'}
-                </button>
-              </div>
-            </form>
+            {/* Register User Modal */}
+      <Modal
+        isOpen={showRegisterModal}
+        onClose={() => setShowRegisterModal(false)}
+        title="Register New User"
+        contentClassName="pb-0"
+      >
+        <form onSubmit={registerUser} className="space-y-4">
+          <div>
+            <label className="mb-2.5 block text-black dark:text-white">
+              Full Name
+            </label>
+            <input
+              type="text"
+              value={registerForm.full_name}
+              onChange={(e) => setRegisterForm({ ...registerForm, full_name: e.target.value })}
+              required
+              className="w-full rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+              placeholder="Enter full name"
+            />
           </div>
-        </div>      )}
-      
+
+          <div>
+            <label className="mb-2.5 block text-black dark:text-white">
+              Email
+            </label>
+            <input
+              type="email"
+              value={registerForm.email}
+              onChange={(e) => setRegisterForm({ ...registerForm, email: e.target.value })}
+              required
+              className="w-full rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+              placeholder="Enter email address"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2.5 block text-black dark:text-white">
+              Password
+            </label>
+            <input
+              type="password"
+              value={registerForm.password}
+              onChange={(e) => setRegisterForm({ ...registerForm, password: e.target.value })}
+              required
+              minLength={6}
+              className="w-full rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+              placeholder="Enter password (min 6 characters)"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2.5 block text-black dark:text-white">
+              Role
+            </label>
+            <select
+              value={registerForm.role}
+              onChange={(e) => setRegisterForm({ ...registerForm, role: e.target.value as UserRole })}
+              className="w-full rounded border-[1.5px] border-stroke bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+            >
+              <option value="assistant">Assistant</option>
+              <option value="admin">Administrator</option>
+            </select>
+          </div>
+
+          <ModalFooter className="-mx-6 mt-6 mb-0 rounded-b-lg">
+            <CancelButton onClick={() => setShowRegisterModal(false)} className="flex-1">
+              Cancel
+            </CancelButton>
+            <ConfirmButton type="submit" disabled={registerLoading} className="flex-1">
+              {registerLoading ? 'Creating...' : 'Create User'}
+            </ConfirmButton>
+          </ModalFooter>
+        </form>
+      </Modal>
+
       {/* Confirmation Dialog */}
       <ConfirmationDialog
         isOpen={confirmDialog.isOpen}
@@ -453,3 +436,4 @@ export default function UsersPage() {
     </PermissionGuard>
   )
 }
+

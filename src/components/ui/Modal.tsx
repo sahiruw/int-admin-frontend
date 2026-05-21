@@ -8,10 +8,11 @@ type ModalProps = {
     onClose: () => void;
     title?: string;
     className?: string;
+    contentClassName?: string;
     children: React.ReactNode;
 };
 
-export function Modal({ isOpen, onClose, title, className, children }: ModalProps) {
+export function Modal({ isOpen, onClose, title, className, contentClassName, children }: ModalProps) {
     const modalRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -37,14 +38,14 @@ export function Modal({ isOpen, onClose, title, className, children }: ModalProp
     if (!isOpen) return null;
 
     return (
-        <div 
-            className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" 
+        <div
+            className="fixed inset-0 z-50 bg-black/55 dark:bg-black/70 flex items-center justify-center p-4"
             onClick={onClose}
         >
-            <div 
+            <div
                 ref={modalRef}
                 className={cn(
-                    "bg-white dark:bg-dark-1 rounded-lg shadow-xl max-w-md w-full",
+                    "bg-white dark:bg-gray-dark rounded-lg shadow-xl max-w-md w-full border border-stroke dark:border-dark-3",
                     className
                 )}
                 onClick={(e) => e.stopPropagation()}
@@ -54,31 +55,34 @@ export function Modal({ isOpen, onClose, title, className, children }: ModalProp
                         <h3 className="text-lg font-semibold text-dark dark:text-white">{title}</h3>
                     </div>
                 )}
-                <div className="p-6">{children}</div>
+                <div className={cn("p-6", contentClassName)}>{children}</div>
             </div>
         </div>
     );
 }
 
 type ConfirmButtonProps = {
-    onClick: () => void;
+    onClick?: () => void;
     className?: string;
     disabled?: boolean;
-    variant?: "primary" | "danger" | "success";
+    variant?: "primary" | "danger" | "success" | "warning";
+    type?: "button" | "submit" | "reset";
     children: React.ReactNode;
 }
 
-export function ConfirmButton({ onClick, className, disabled, variant = "primary", children }: ConfirmButtonProps) {
+export function ConfirmButton({ onClick, className, disabled, variant = "primary", type = "button", children }: ConfirmButtonProps) {
     return (
         <button
+            type={type}
             onClick={onClick}
             disabled={disabled}
             className={cn(
-                "px-4 py-2 rounded-md font-medium text-white",
+                "px-4 py-2 rounded-md font-medium text-white transition-colors",
                 {
                     "bg-blue-600 hover:bg-blue-700": variant === "primary",
                     "bg-red-600 hover:bg-red-700": variant === "danger",
                     "bg-green-600 hover:bg-green-700": variant === "success",
+                    "bg-yellow-500 hover:bg-yellow-600": variant === "warning",
                 },
                 "disabled:opacity-50 disabled:cursor-not-allowed",
                 className
@@ -89,13 +93,14 @@ export function ConfirmButton({ onClick, className, disabled, variant = "primary
     );
 }
 
-export function CancelButton({ onClick, className, disabled, children }: Omit<ConfirmButtonProps, 'variant'>) {
+export function CancelButton({ onClick, className, disabled, type = "button", children }: Omit<ConfirmButtonProps, 'variant'>) {
     return (
         <button
+            type={type}
             onClick={onClick}
             disabled={disabled}
             className={cn(
-                "px-4 py-2 rounded-md font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600",
+                "px-4 py-2 rounded-md font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors",
                 "disabled:opacity-50 disabled:cursor-not-allowed",
                 className
             )}
@@ -139,7 +144,8 @@ export function InputField({
             <input
                 type={type}
                 value={value}
-                onChange={onChange}                placeholder={placeholder}
+                onChange={onChange}
+                placeholder={placeholder}
                 required={required}
                 onKeyDown={onKeyDown}
                 className={cn(
