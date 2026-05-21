@@ -10,6 +10,21 @@ import { KoiInfo, ShippingData } from '@/types/koi';
 import React, { useEffect, useMemo, useState } from 'react'
 import { toast } from 'react-hot-toast'
 
+const normalizeDateOnly = (value: unknown) => {
+  if (!value) return null;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    return trimmed.includes("T") ? trimmed.split("T")[0] : trimmed;
+  }
+
+  if (value instanceof Date) {
+    return value.toISOString().split("T")[0];
+  }
+
+  return null;
+};
+
 const page = () => {
   const { setLoading } = useLoading();
   const [selectedBreeder, setSelectedBreeder] = useState<string | null>(null);
@@ -23,7 +38,11 @@ const page = () => {
     fetch(`/api/koi?shipped=false`, { next: { revalidate: false } })
       .then((response) => response.json())
       .then((records) => {
-        setData(groupRecords(records));
+        const normalizedRecords = (records || []).map((record: any) => ({
+          ...record,
+          date: normalizeDateOnly(record.date),
+        }));
+        setData(groupRecords(normalizedRecords));
       })
       .catch((error) => {
         console.error('Error fetching data:', error);

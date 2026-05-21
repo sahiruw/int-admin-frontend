@@ -91,6 +91,24 @@ export function DataTable({
     }));
   };
 
+  const getDateInputValue = (value: unknown) => {
+    if (!value) return "";
+    if (typeof value === "string") {
+      return value.includes("T") ? value.split("T")[0] : value;
+    }
+    if (value instanceof Date) {
+      return value.toISOString().split("T")[0];
+    }
+    return "";
+  };
+
+  const getInputValue = (row: KoiInfo, key: keyof ShippingData) => {
+    if (key === "date") {
+      return getDateInputValue(row[key]);
+    }
+    return row[key] ?? "";
+  };
+
   const toggleRowSelection = (picture_id: string) => {
     setSelectedRows(prev => {
       const newSet = new Set(prev);
@@ -281,7 +299,7 @@ export function DataTable({
                     <TableCell key={key} className="text-right">                      
                     <input
                         type={type}
-                        value={row[key] || ""}
+                        value={getInputValue(row, key)}
                         onChange={(e) => handleInputChange(row.picture_id, key, e.target.value)}
                         className={cn(
                           "w-full text-right border border-gray-100 rounded-md p-2 ",
