@@ -17,7 +17,13 @@ const parseNullableDate = (value: unknown, field: string) => {
   if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     throw new Error(`Invalid ${field}. Expected YYYY-MM-DD.`);
   }
-  return value;
+
+  const parsedDate = new Date(`${value}T00:00:00.000Z`);
+  if (Number.isNaN(parsedDate.getTime())) {
+    throw new Error(`Invalid ${field}. Could not parse date.`);
+  }
+
+  return parsedDate;
 };
 
 const parseNullableDecimal = (value: unknown, field: string) => {
