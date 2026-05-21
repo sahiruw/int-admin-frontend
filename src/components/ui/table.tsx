@@ -22,7 +22,7 @@ export function TableHeader({
   return (
     <thead
       className={cn(
-        "[&_tr]:border-b sticky top-0 bg-white dark:bg-neutral-900",
+        "[&_tr]:border-b sticky top-0 z-20 bg-white dark:bg-neutral-900",
         className,
       )}
       {...props}

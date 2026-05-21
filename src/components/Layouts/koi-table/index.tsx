@@ -28,7 +28,7 @@ function KoiThumbnail({ pictureId }: { pictureId: string }) {
   }, [pictureId]);
 
   return (
-    <div className="relative w-14 h-14 rounded-md overflow-hidden border border-gray-200 dark:border-dark-3 bg-gray-50 dark:bg-dark-2">
+    <div className="relative z-0 w-14 h-14 rounded-md overflow-hidden border border-gray-200 dark:border-dark-3 bg-gray-50 dark:bg-dark-2">
       {!isLoaded && !hasError && (
         <div className="absolute inset-0 animate-pulse bg-gray-200 dark:bg-gray-700" />
       )}
