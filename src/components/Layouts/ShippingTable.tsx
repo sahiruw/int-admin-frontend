@@ -22,6 +22,47 @@ type DataTableProps = {
   setShippingData: React.Dispatch<React.SetStateAction<Record<string, ShippingData>>>;
 };
 
+function KoiThumbnail({ pictureId }: { pictureId: string }) {
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [hasError, setHasError] = useState(false);
+  const src = `/api/koi/thumbnail?picture_id=${encodeURIComponent(pictureId)}`;
+
+  useEffect(() => {
+    setIsLoaded(false);
+    setHasError(false);
+  }, [pictureId]);
+
+  return (
+    <div className="relative z-0 h-14 w-14 overflow-hidden rounded-md border border-gray-200 bg-gray-50 dark:border-dark-3 dark:bg-dark-2">
+      {!isLoaded && !hasError && (
+        <div className="absolute inset-0 animate-pulse bg-gray-200 dark:bg-gray-700" />
+      )}
+
+      {hasError ? (
+        <div className="absolute inset-0 flex items-center justify-center text-[10px] text-gray-500 dark:text-gray-400">
+          No image
+        </div>
+      ) : (
+        <img
+          src={src}
+          alt={`Koi ${pictureId}`}
+          loading="lazy"
+          decoding="async"
+          className={cn(
+            "h-full w-full object-cover transition-opacity duration-200",
+            isLoaded ? "opacity-100" : "opacity-0",
+          )}
+          onLoad={() => setIsLoaded(true)}
+          onError={() => {
+            setHasError(true);
+            setIsLoaded(true);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
 
 export function DataTable({
   rawData,
@@ -34,7 +75,7 @@ export function DataTable({
       No data to display</div>;
   }
 
-  let columns = ["Koi Info", "Variety", "Cost info", "Customer Info"]
+  let columns = ["Image", "Koi Info", "Variety", "Cost info", "Customer Info"]
   let input_columns: { key: keyof ShippingData; Header: string; type: string }[] = [
     { key: "date", Header: "Ship Date", type: "date" },
     { key: "box_count", Header: "# of Box", type: "number" },
@@ -209,7 +250,7 @@ export function DataTable({
               {columns?.map((header, index) => (
                 <TableHead
                   key={index}
-                  className={cn("w-auto ", index === 0 ? "text-left" : "text-right")}
+                  className={cn("w-auto ", index <= 1 ? "text-left" : "text-right")}
                 >
                   {header}
                 </TableHead>
@@ -248,7 +289,11 @@ export function DataTable({
                       onChange={() => toggleRowSelection(row.picture_id)}
                       className="w-4 h-4"
                     />
-                  </TableCell>                  <TableCell>
+                  </TableCell>
+                  <TableCell>
+                    <KoiThumbnail pictureId={row.picture_id} />
+                  </TableCell>
+                  <TableCell>
                     <div className="flex flex-col">
                       <p className=" text-dark dark:text-white">
                         {row.picture_id}
