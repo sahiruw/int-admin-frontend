@@ -8,6 +8,8 @@ interface ValidationResult {
   missingEntities: {
     breeders: string[];
     varieties: string[];
+    customers: string[];
+    locations: string[];
   };
 }
 
@@ -83,7 +85,12 @@ export function ValidationStep({
   }
 
   const { valid, invalid, missingEntities } = validationResult;
-  const hasErrors = invalid.length > 0 || missingEntities.breeders.length > 0 || missingEntities.varieties.length > 0;
+  const hasMissingEntities = missingEntities.breeders.length > 0 || 
+                             missingEntities.varieties.length > 0 || 
+                             missingEntities.customers?.length > 0 || 
+                             missingEntities.locations?.length > 0;
+
+  const hasErrors = invalid.length > 0;
 
   return (
     <div className="space-y-6">
@@ -102,35 +109,54 @@ export function ValidationStep({
         </div>
       </div>
 
-      {/* Missing Entities */}
-      {(missingEntities.breeders.length > 0 || missingEntities.varieties.length > 0) && (
-        <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg border border-yellow-200 dark:border-yellow-800">
-          <h4 className="font-medium text-yellow-800 dark:text-yellow-200 mb-2">
-            Missing Reference Data
+      {/* Missing Entities to be created */}
+      {hasMissingEntities && (
+        <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+          <h4 className="font-medium text-blue-800 dark:text-blue-200 mb-2">
+            The following records will be created automatically:
           </h4>
-          {missingEntities.breeders.length > 0 && (
-            <div className="mb-2">
-              <p className="text-sm text-yellow-700 dark:text-yellow-300 font-medium">Unknown Breeders:</p>
-              <ul className="text-xs text-yellow-600 dark:text-yellow-400 list-disc list-inside">
-                {missingEntities.breeders.map((breeder, i) => (
-                  <li key={i}>{breeder}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-          {missingEntities.varieties.length > 0 && (
-            <div>
-              <p className="text-sm text-yellow-700 dark:text-yellow-300 font-medium">Unknown Varieties:</p>
-              <ul className="text-xs text-yellow-600 dark:text-yellow-400 list-disc list-inside">
-                {missingEntities.varieties.map((variety, i) => (
-                  <li key={i}>{variety}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-          <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-2">
-            Note: Missing customers and shipping locations will be created automatically.
-          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {missingEntities.breeders.length > 0 && (
+              <div>
+                <p className="text-sm text-blue-700 dark:text-blue-300 font-medium">New Breeders:</p>
+                <ul className="text-xs text-blue-600 dark:text-blue-400 list-disc list-inside">
+                  {missingEntities.breeders.map((breeder, i) => (
+                    <li key={i}>{breeder}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {missingEntities.varieties.length > 0 && (
+              <div>
+                <p className="text-sm text-blue-700 dark:text-blue-300 font-medium">New Varieties:</p>
+                <ul className="text-xs text-blue-600 dark:text-blue-400 list-disc list-inside">
+                  {missingEntities.varieties.map((variety, i) => (
+                    <li key={i}>{variety}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {missingEntities.customers?.length > 0 && (
+              <div>
+                <p className="text-sm text-blue-700 dark:text-blue-300 font-medium">New Customers:</p>
+                <ul className="text-xs text-blue-600 dark:text-blue-400 list-disc list-inside">
+                  {missingEntities.customers.map((customer, i) => (
+                    <li key={i}>{customer}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {missingEntities.locations?.length > 0 && (
+              <div>
+                <p className="text-sm text-blue-700 dark:text-blue-300 font-medium">New Shipping Locations:</p>
+                <ul className="text-xs text-blue-600 dark:text-blue-400 list-disc list-inside">
+                  {missingEntities.locations.map((location, i) => (
+                    <li key={i}>{location}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
