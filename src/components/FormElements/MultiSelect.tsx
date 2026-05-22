@@ -95,7 +95,7 @@ const MultiSelect: React.FC<DropdownProps> = ({ id }) => {
   }, [show]);
 
   return (
-    <div className="relative z-50">
+    <div className="relative z-[60]">
       <label className="mb-3 block text-body-sm font-medium text-dark dark:text-white">
         Multiselect Dropdown
       </label>
@@ -184,7 +184,7 @@ const MultiSelect: React.FC<DropdownProps> = ({ id }) => {
               </div>
               <div className="w-full px-4">
                 <div
-                  className={`max-h-select absolute left-0 top-full z-40 w-full overflow-y-auto rounded bg-white shadow-1 dark:bg-dark-2 dark:shadow-card ${
+                  className={`max-h-select absolute left-0 top-full z-[70] w-full overflow-y-auto rounded bg-white shadow-1 dark:bg-dark-2 dark:shadow-card ${
                     isOpen() ? "" : "hidden"
                   }`}
                   ref={dropdownRef}

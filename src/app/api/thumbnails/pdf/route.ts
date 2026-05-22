@@ -54,7 +54,7 @@ function drawPageHeader(
   pdf.setFont("helvetica", "bold");
   pdf.setTextColor(21, 27, 38);
   pdf.setFontSize(12);
-  pdf.text(title, startX, startY);
+  pdf.text(fitText(pdf, title, pageWidth - 20), startX, startY);
 
   pdf.setFont("helvetica", "normal");
   pdf.setTextColor(98, 106, 119);
@@ -87,11 +87,23 @@ function drawFooter(pdf: jsPDF, page: number, totalPages: number) {
 
 export async function POST(req: NextRequest) {
   try {
-    const { items } = await req.json();
+    const { items, headerLabel, headerValue } = await req.json();
     const rawItems = Array.isArray(items) ? items : [];
     const safeItems: ThumbnailItem[] = rawItems.filter(
       (item): item is ThumbnailItem => Boolean(item?.picture_id),
     );
+    const safeHeaderLabel =
+      typeof headerLabel === "string" ? headerLabel.trim() : "";
+    const safeHeaderValue =
+      typeof headerValue === "string" ? headerValue.trim() : "";
+    const headerContext = safeHeaderValue
+      ? safeHeaderLabel
+        ? `${safeHeaderLabel}: ${safeHeaderValue}`
+        : safeHeaderValue
+      : "";
+    const sheetTitle = headerContext
+      ? `Koi Thumbnail Sheet - ${headerContext}`
+      : "Koi Thumbnail Sheet";
 
     const itemsWithImages: ThumbnailItemWithImage[] = await Promise.all(
       safeItems.map(async (item) => {
@@ -150,7 +162,7 @@ export async function POST(req: NextRequest) {
 
     if (itemsWithImages.length === 0) {
       drawPageHeader(pdf, {
-        title: "Koi Thumbnail Sheet",
+        title: sheetTitle,
         generatedAt,
         count: 0,
         page: 1,
@@ -169,7 +181,7 @@ export async function POST(req: NextRequest) {
       const page = Math.floor(index / itemsPerPage) + 1;
       if (index % itemsPerPage === 0) {
         drawPageHeader(pdf, {
-          title: "Koi Thumbnail Sheet",
+          title: sheetTitle,
           generatedAt,
           count: itemsWithImages.length,
           page,

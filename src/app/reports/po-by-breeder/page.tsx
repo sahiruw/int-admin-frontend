@@ -177,7 +177,13 @@ const page = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ items: thumbnailItems }),
+        body: JSON.stringify({
+          items: thumbnailItems,
+          headerLabel: "Breeder",
+          headerValue:
+            breederOptions.find((item: any) => item.value === selectedBreeder)
+              ?.label || "",
+        }),
       });
 
       if (!response.ok) {

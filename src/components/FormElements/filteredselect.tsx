@@ -36,7 +36,7 @@ export function FilteredTextboxDropdown({
     : items;
 
   return (
-    <div ref={wrapperRef} className={cn("relative", className)}>
+    <div ref={wrapperRef} className={cn("relative z-[60]", className)}>
       {label && (
         <label
           htmlFor={id}
@@ -87,7 +87,7 @@ export function FilteredTextboxDropdown({
       </div>
 
       {isOpen && filteredItems.length > 0 && (
-        <ul className="absolute z-10 mt-1 w-full max-h-48 overflow-y-auto rounded-lg border border-[#E8E8E8] bg-white p-1 font-medium text-dark-5 shadow-md dark:border-dark-3 dark:bg-dark-2 dark:text-current">
+        <ul className="absolute z-[70] mt-1 w-full max-h-48 overflow-y-auto rounded-lg border border-[#E8E8E8] bg-white p-1 font-medium text-dark-5 shadow-md dark:border-dark-3 dark:bg-dark-2 dark:text-current">
           {filteredItems.map((item) => (
             <li key={item.value}>
               <button

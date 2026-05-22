@@ -62,7 +62,7 @@ export function Dropdown({ children, isOpen, setIsOpen }: DropdownProps) {
 
   return (
     <DropdownContext.Provider value={{ isOpen, handleOpen, handleClose }}>
-      <div className="relative" onKeyDown={handleKeyDown}>
+      <div className="relative z-[60]" onKeyDown={handleKeyDown}>
         {children}
       </div>
     </DropdownContext.Provider>
@@ -94,7 +94,7 @@ export function DropdownContent({
       role="menu"
       aria-orientation="vertical"
       className={cn(
-        "fade-in-0 zoom-in-95 pointer-events-auto absolute z-40 mt-2 min-w-[8rem] origin-top-right rounded-lg",
+        "fade-in-0 zoom-in-95 pointer-events-auto absolute z-[70] mt-2 min-w-[8rem] origin-top-right rounded-lg",
         {
           "animate-in right-0": align === "end",
           "left-0": align === "start",
