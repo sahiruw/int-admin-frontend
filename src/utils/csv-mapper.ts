@@ -1,4 +1,4 @@
-import { createClient } from "@/utils/supabase/supabase";
+import prisma from "@/lib/prisma";
 
 export interface InputRow {
   'Picture ID': string;
@@ -82,36 +82,30 @@ export class CSVMapper {
    * Initialize lookup tables from database
    */
   async initializeLookupTables(): Promise<void> {
-    const supabaseClient = await createClient();
-
-    try {      // Fetch all lookup data in parallel
+    try {
+      // Fetch all lookup data in parallel
       const [breedersRes, varietiesRes, customersRes, locationsRes, configRes] = await Promise.all([
-        supabaseClient.from("breeder").select("id, name"),
-        supabaseClient.from("variety").select("id, variety"),
-        supabaseClient.from("customer").select("id, name"),
-        supabaseClient.from("shippinglocation").select("id, name"),
-        supabaseClient.from("configuration").select("ex_rate, commission, created_at").order("created_at", { ascending: false }).limit(1)
+        prisma.breeder.findMany({ select: { id: true, name: true } }),
+        prisma.variety.findMany({ select: { id: true, variety: true } }),
+        prisma.customer.findMany({ select: { id: true, name: true } }),
+        prisma.shippinglocation.findMany({ select: { id: true, name: true } }),
+        prisma.configuration.findMany({ select: { ex_rate: true, commission: true }, orderBy: { created_at: 'desc' }, take: 1 })
       ]);
 
-      // Check for errors
-      if (breedersRes.error) throw new Error(`Breeders: ${breedersRes.error.message}`);
-      if (varietiesRes.error) throw new Error(`Varieties: ${varietiesRes.error.message}`);
-      if (customersRes.error) throw new Error(`Customers: ${customersRes.error.message}`);
-      if (locationsRes.error) throw new Error(`Locations: ${locationsRes.error.message}`);
-      if (configRes.error) throw new Error(`Configuration: ${configRes.error.message}`);
-
-      // Handle configuration - use first row if available, otherwise use defaults
-    if (!configRes.data || configRes.data.length === 0) {
-      throw new Error("No configuration found in database");
-    }
-    const configData = configRes.data[0];
+      if (!configRes || configRes.length === 0) {
+        throw new Error("No configuration found in database");
+      }
+      const configData = configRes[0];
 
       this.lookupTables = {
-        breeders: breedersRes.data || [],
-        varieties: varietiesRes.data || [],
-        customers: customersRes.data || [],
-        locations: locationsRes.data || [],
-        configuration: configData
+        breeders: breedersRes.map(b => ({ id: b.id, name: b.name || '' })),
+        varieties: varietiesRes.map(v => ({ id: v.id, variety: v.variety || '' })),
+        customers: customersRes.map(c => ({ id: c.id, name: c.name || '' })),
+        locations: locationsRes.map(l => ({ id: l.id, name: l.name || '' })),
+        configuration: {
+          ex_rate: Number(configData.ex_rate),
+          commission: Number(configData.commission)
+        }
       };
     } catch (error) {
       throw new Error(`Failed to initialize lookup tables: ${error}`);
@@ -165,14 +159,10 @@ export class CSVMapper {
     if (existing) return existing.id;
 
     try {
-      const supabaseClient = await createClient();
-      const { data, error } = await supabaseClient
-        .from("breeder")
-        .insert({ name })
-        .select("id")
-        .single();
-
-      if (error) throw error;
+      const data = await prisma.breeder.create({
+        data: { name },
+        select: { id: true }
+      });
 
       this.lookupTables.breeders.push({ id: data.id, name });
       return data.id;
@@ -194,14 +184,10 @@ export class CSVMapper {
     if (existing) return existing.id;
 
     try {
-      const supabaseClient = await createClient();
-      const { data, error } = await supabaseClient
-        .from("variety")
-        .insert({ variety })
-        .select("id")
-        .single();
-
-      if (error) throw error;
+      const data = await prisma.variety.create({
+        data: { variety },
+        select: { id: true }
+      });
 
       this.lookupTables.varieties.push({ id: data.id, variety });
       return data.id;
@@ -223,14 +209,10 @@ export class CSVMapper {
     );
     if (existing) return existing.id;    // Create new customer
     try {
-      const supabaseClient = await createClient();
-      const { data, error } = await supabaseClient
-        .from("customer")
-        .insert({ name })
-        .select("id")
-        .single();
-
-      if (error) throw error;
+      const data = await prisma.customer.create({
+        data: { name },
+        select: { id: true }
+      });
 
       // Add to local cache
       this.lookupTables.customers.push({ id: data.id, name });
@@ -253,14 +235,10 @@ export class CSVMapper {
     );
     if (existing) return existing.id;    // Create new location
     try {
-      const supabaseClient = await createClient();
-      const { data, error } = await supabaseClient
-        .from("shippinglocation")
-        .insert({ name })
-        .select("id")
-        .single();
-
-      if (error) throw error;
+      const data = await prisma.shippinglocation.create({
+        data: { name },
+        select: { id: true }
+      });
 
       // Add to local cache
       this.lookupTables.locations.push({ id: data.id, name });
