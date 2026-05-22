@@ -70,7 +70,7 @@ export function FilteredMultiSelectTextboxDropdown({
   return (
     <div
       ref={wrapperRef}
-      className={cn("space-y-1 min-w-60 relative text-sm", className)}
+      className={cn("space-y-1 min-w-60 relative z-[60] text-sm", className)}
     >
       <label
         htmlFor={id}
@@ -112,7 +112,7 @@ export function FilteredMultiSelectTextboxDropdown({
       </div>
 
       {isOpen && filteredItems.length > 0 && (
-        <div className="absolute z-10 mt-1 w-full rounded-lg border border-stroke bg-white dark:bg-dark-2 shadow-md max-h-40 overflow-y-auto"
+        <div className="absolute z-[70] mt-1 w-full rounded-lg border border-stroke bg-white dark:bg-dark-2 shadow-md max-h-40 overflow-y-auto"
         // onMouseLeave={() => setIsOpen(false)}
         >
           <div className="flex justify-between px-5.5 py-2 border-b border-stroke dark:border-dark-3">
