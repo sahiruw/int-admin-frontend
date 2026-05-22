@@ -33,6 +33,8 @@ type DataTableProps<T> = {
   selectedRows?: T[];
   toggleSelectedRow?: (isSelected: boolean, row?: T) => void;
   maxHeight?: string;
+  defaultSortColumn?: string;
+  defaultSortDirection?: "asc" | "desc";
 };
 
 export function DataTable<T extends {}>({
@@ -46,6 +48,8 @@ export function DataTable<T extends {}>({
   selectedRows = [],
   toggleSelectedRow,
   maxHeight = "75vh",
+  defaultSortColumn,
+  defaultSortDirection = "asc",
 }: DataTableProps<T>) {
 
   if (!data?.length || !columns?.length) {
@@ -64,8 +68,12 @@ export function DataTable<T extends {}>({
     }
   });
 
-  const [sortColumn, setSortColumn] = useState<string>("id");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [sortColumn, setSortColumn] = useState<string>(
+    defaultSortColumn || columns[0]?.key || "",
+  );
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">(
+    defaultSortDirection,
+  );
 
   const handleSort = (columnKey: string) => {
     if (sortColumn === columnKey) {

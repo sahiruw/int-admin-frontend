@@ -112,16 +112,18 @@ const Page = () => {
         data={sortedRecords}
         columns={[
           { key: 'picture_id', header: 'Picture ID' },
+          { key: 'breeder_name', header: 'Breeder' },
+          { key: 'customer_name', header: 'Customer' },
           { key: 'variety_name', header: 'Variety' },
           { key: 'size_cm', header: 'Size' },
           { key: 'sex', header: 'Sex' },
           { key: 'age', header: 'Age' },
-          { key: 'breeder_name', header: 'Breeder' },
-          { key: 'customer_name', header: 'Customer' },
           { key: 'location_name', header: 'Location' },
         ]}
         label="Boarding List - Japan"
         maxHeight="72vh"
+        defaultSortColumn="breeder_name"
+        defaultSortDirection="asc"
       />
     </div>
   );
