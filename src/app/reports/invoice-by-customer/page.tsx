@@ -165,7 +165,11 @@ const Page = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ items: data }),
+                body: JSON.stringify({
+                    items: data,
+                    headerLabel: "Customer",
+                    headerValue: selectedCustomer || "",
+                }),
             });
 
             if (!response.ok) {
