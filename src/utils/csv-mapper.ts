@@ -141,15 +141,14 @@ export class CSVMapper {
   private findVariety(identifier: string): number | null {
     if (!this.lookupTables) throw new Error("Lookup tables not initialized");
 
-    // Try by ID first
-    const byId = this.lookupTables.varieties.find(v => v.id.toString() === identifier);
-    if (byId) return byId.id;
+    // // Try by ID first
+    // const byId = this.lookupTables.varieties.find(v => v.id.toString() === identifier);
+    // if (byId) return byId.id;
 
     // Try by name (case insensitive, fuzzy matching)
     const cleanIdentifier = identifier.toLowerCase().trim();
     const byName = this.lookupTables.varieties.find(v => 
-      v.variety.toLowerCase().includes(cleanIdentifier) || 
-      cleanIdentifier.includes(v.variety.toLowerCase())
+      v.variety.toLowerCase() === cleanIdentifier.toLowerCase()
     );
     return byName ? byName.id : null;
   }
