@@ -154,6 +154,64 @@ export class CSVMapper {
   }
 
   /**
+   * Find or create breeder by name
+   */
+  private async findOrCreateBreeder(name: string): Promise<number | null> {
+    if (!this.lookupTables || !name) return null;
+
+    const existing = this.lookupTables.breeders.find(b => 
+      b.name.toLowerCase() === name.toLowerCase()
+    );
+    if (existing) return existing.id;
+
+    try {
+      const supabaseClient = await createClient();
+      const { data, error } = await supabaseClient
+        .from("breeder")
+        .insert({ name })
+        .select("id")
+        .single();
+
+      if (error) throw error;
+
+      this.lookupTables.breeders.push({ id: data.id, name });
+      return data.id;
+    } catch (error) {
+      console.warn(`Failed to create breeder "${name}":`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Find or create variety by name
+   */
+  private async findOrCreateVariety(variety: string): Promise<number | null> {
+    if (!this.lookupTables || !variety) return null;
+
+    const existing = this.lookupTables.varieties.find(v => 
+      v.variety.toLowerCase() === variety.toLowerCase()
+    );
+    if (existing) return existing.id;
+
+    try {
+      const supabaseClient = await createClient();
+      const { data, error } = await supabaseClient
+        .from("variety")
+        .insert({ variety })
+        .select("id")
+        .single();
+
+      if (error) throw error;
+
+      this.lookupTables.varieties.push({ id: data.id, variety });
+      return data.id;
+    } catch (error) {
+      console.warn(`Failed to create variety "${variety}":`, error);
+      return null;
+    }
+  }
+
+  /**
    * Find customer by name (creates if not found)
    */
   private async findOrCreateCustomer(name: string): Promise<number | null> {
@@ -286,20 +344,27 @@ export class CSVMapper {
         return null;
       }
 
-      // Find variety ID
+      // Find or create variety ID
       const variety = this.getRowValue(row, 'Variety', 'variety');
-      const varietyId = this.findVariety(variety);
+      const varietyId = await this.findOrCreateVariety(variety);
       if (!varietyId) {
-        console.warn(`Skipping row ${pictureId}: Unknown variety "${variety}"`);
+        console.warn(`Skipping row ${pictureId}: Missing variety`);
         return null;
       }
 
-      // Find breeder ID
+      // Find or create breeder ID
       const breederId = this.getRowValue(row, 'Bre-ID', 'breeder_id');
       const breederName = this.getRowValue(row, 'Breeder', 'breeder');
-      const breederFound = this.findBreeder(breederId || breederName);
+      let breederFound = this.findBreeder(breederId || breederName);
+      
+      if (!breederFound && breederName) {
+        breederFound = await this.findOrCreateBreeder(breederName);
+      } else if (!breederFound && breederId) {
+        breederFound = await this.findOrCreateBreeder(breederId);
+      }
+      
       if (!breederFound) {
-        console.warn(`Skipping row ${pictureId}: Unknown breeder "${breederId} - ${breederName}"`);
+        console.warn(`Skipping row ${pictureId}: Missing breeder`);
         return null;
       }      // Find or create customer and location
       const soldTo = this.getRowValue(row, 'Sold to ', 'Sold to', 'sold_to', 'customer');
@@ -378,6 +443,8 @@ export class CSVMapper {
     missingEntities: {
       breeders: string[];
       varieties: string[];
+      customers: string[];
+      locations: string[];
     };
   }> {
     if (!this.lookupTables) {
@@ -392,6 +459,8 @@ export class CSVMapper {
     const invalid: Array<{ row: number; issues: string[]; data: InputRow }> = [];
     const missingBreeders = new Set<string>();
     const missingVarieties = new Set<string>();
+    const missingCustomers = new Set<string>();
+    const missingLocations = new Set<string>();
     let valid = 0;    for (let i = 0; i < rows.length; i++) {
       const row = rows[i];
       const issues: string[] = [];
@@ -412,9 +481,8 @@ export class CSVMapper {
       } else {
         const varietyFound = this.findVariety(variety);
         if (!varietyFound) {
-          issues.push(`Unknown variety: ${variety}`);
           missingVarieties.add(variety);
-          console.log(`Row ${i + 1}: Unknown variety "${variety}"`);
+          console.log(`Row ${i + 1}: Unknown variety "${variety}" (will be created)`);
         } else {
           console.log(`Row ${i + 1}: Found variety "${variety}" -> ID ${varietyFound}`);
         }
@@ -426,8 +494,25 @@ export class CSVMapper {
       } else {
         const breederFound = this.findBreeder(breederId || breederName);
         if (!breederFound) {
-          issues.push(`Unknown breeder: ${breederId} - ${breederName}`);
-          missingBreeders.add(`${breederId} - ${breederName}`);
+          missingBreeders.add(breederName || breederId);
+        }
+      }
+
+      // Check customer
+      const soldTo = this.getRowValue(row, 'Sold to ', 'Sold to', 'sold_to', 'customer');
+      if (soldTo) {
+        const existing = this.lookupTables.customers.find(c => c.name.toLowerCase() === soldTo.toLowerCase());
+        if (!existing) {
+          missingCustomers.add(soldTo);
+        }
+      }
+
+      // Check location
+      const shipTo = this.getRowValue(row, 'Ship to ', 'Ship to', 'ship_to', 'location');
+      if (shipTo) {
+        const existing = this.lookupTables.locations.find(l => l.name.toLowerCase() === shipTo.toLowerCase());
+        if (!existing) {
+          missingLocations.add(shipTo);
         }
       }
 
@@ -459,7 +544,9 @@ export class CSVMapper {
       invalid,
       missingEntities: {
         breeders: Array.from(missingBreeders),
-        varieties: Array.from(missingVarieties)
+        varieties: Array.from(missingVarieties),
+        customers: Array.from(missingCustomers),
+        locations: Array.from(missingLocations)
       }
     };
   }
