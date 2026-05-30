@@ -24,6 +24,7 @@ export async function POST(req: Request) {
       row.weight_of_box,
       row.box_count,
       box ? `${box.length_cm}x${box.width_cm}x${box.thickness_cm}` : '',
+      row.customer_name,
     ];
   });
   

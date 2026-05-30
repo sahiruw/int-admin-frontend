@@ -19,6 +19,7 @@ export async function POST(req: Request) {
     row.jpy_cost,
     row.jpy_total,
     row.box_count,
+    row.customer_name,
   ]);
 
   const { drive, sheets } = await getGoogleServices();
